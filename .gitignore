@@ -1,0 +1,7 @@
+node_modules/
+out/
+reelproj/
+*.onnx
+voices-v1.0.bin
+__pycache__/
+.hyperframes/

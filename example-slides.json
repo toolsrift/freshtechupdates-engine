@@ -1,0 +1,50 @@
+{
+  "cover": {
+    "kicker": "Top 5 AI & tech updates",
+    "headline": "This week's *biggest* AI moves",
+    "teasers": [
+      "Anthropic takes its IPO plans on the road",
+      "NVIDIA's GR00T 2 teaches robots from video",
+      "ChatGPT Images 2.6 now makes animated GIFs",
+      "AI data centres push US power to records",
+      "Meta pauses its website-scraping terms"
+    ]
+  },
+  "stories": [
+    {
+      "category": "AI business",
+      "icon": "trending-up",
+      "headline": "Anthropic takes its *IPO* plans on the road",
+      "body": "The Claude maker has started its IPO roadshow, a big step towards listing on the stock market.",
+      "source": "theneuron.ai"
+    },
+    {
+      "category": "Robotics",
+      "icon": "bot",
+      "headline": "NVIDIA's *GR00T 2* learns from human video",
+      "body": "The robot model tests whether watching people do tasks helps robots pick up new skills faster.",
+      "source": "theneuron.ai"
+    },
+    {
+      "category": "AI tools",
+      "icon": "image-play",
+      "headline": "ChatGPT Images 2.6 makes *animated GIFs*",
+      "body": "The update adds native GIF generation and reference images that persist, plus two new API models.",
+      "source": "aiweekly.co"
+    },
+    {
+      "category": "Energy",
+      "icon": "zap",
+      "headline": "AI data centres push US power use to *records*",
+      "body": "The US energy agency expects electricity use to hit new highs in 2026 and 2027, partly due to AI.",
+      "source": "theneuron.ai"
+    },
+    {
+      "category": "Privacy",
+      "icon": "shield-check",
+      "headline": "Meta pauses its *website-scraping* terms",
+      "body": "After rulings in Norway and Brazil, Meta indefinitely paused terms that would let it scrape business users' sites.",
+      "source": "aiweekly.co"
+    }
+  ]
+}
