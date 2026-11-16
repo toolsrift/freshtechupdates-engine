@@ -487,7 +487,7 @@ def build(data, proj, show_no, date=None):
             chap.append((a, "Your turn"))
         else:
             s = p["s"]; num_lab = S["label"](i, n)
-            shape = scene_for(s); svg, sj = SCENES[shape](sid, a, d, st)
+            shape = scene_for(s); svg, sj = SCENES[shape](sid, a - .95, d + .95, st)  # build starts while the camera lands
             hw, hn = words_html(s["headline"], f"{sid}-h")
             pts = s.get("points", [])[:3]; stat = s.get("stat") if isinstance(s.get("stat"), dict) and s["stat"].get("value") else None
             hs = hsize(s["headline"], 82 if fam != "ink" else 96)
@@ -506,8 +506,8 @@ def build(data, proj, show_no, date=None):
                      f'<div class="ill sc" id="{sid}-ill" style="left:{ix + (860-ill_w)//2}px;top:{ill_top}px;width:{ill_w}px;height:{int(ill_w*640/1080)}px"><svg viewBox="0 0 1080 640">{svg}</svg></div>'
                      f'{stat_html}')
             js += sj
-            js.append(f'tl.fromTo("#{sid}-row",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.45,ease:"expo.out"}},{T(a+.05)})')
-            js += words_js(f"{sid}-h", hn, a + .2, fam)
+            js.append(f'tl.fromTo("#{sid}-row",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.45,ease:"expo.out"}},{T(a-.85)})')
+            js += words_js(f"{sid}-h", hn, a - .65, fam)
             v0, vd = p["h0"], p["hd"]
             for j in range(len(pts)):
                 js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,x:{-90 if not mir else 90}}},{{opacity:1,x:0,duration:.5,ease:"back.out(1.7)"}},{T(v0+vd*(.42+j*.17))})')
@@ -731,5 +731,6 @@ if __name__ == "__main__":
     info = build(data, sys.argv[2], show)
     out = BASE / "out"; out.mkdir(exist_ok=True)
     metadata(data, info, out / "youtube.txt")
-    thumbnail(data, info, out / "thumbnail.png")
+    import thumbs
+    thumbs.long_thumbs(data, info["show"]["name"], out)   # thumbnail.png (A), thumbnail-B.png, thumbnail-C.png
     print(f"built {sys.argv[2]} · show {show} {info['show']['name']} · {info['total']:.1f}s ({ts(info['total'])}) · chapters: {len(info['chapters'])}")

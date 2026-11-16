@@ -22,5 +22,6 @@ fi
 export DO_NOT_TRACK=1 HYPERFRAMES_NO_TELEMETRY=1
 export HYPERFRAMES_BROWSER_PATH=${HYPERFRAMES_BROWSER_PATH:-/usr/bin/google-chrome}
 (cd reelproj && npx hyperframes render --quality looks -o ../out/freshtechupdates-reel.mp4)
+python3 thumbs.py short "$JSON"   # out/short-cover.png + out/short.txt
 echo "STYLE=$STYLE"
 ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of compact out/freshtechupdates-reel.mp4

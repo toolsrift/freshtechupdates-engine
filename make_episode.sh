@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: ./make_episode.sh episode.json [show 1-7]
-#   -> out/freshtechupdates-episode.mp4 (16:9 YouTube episode), out/thumbnail.png, out/youtube.txt
+#   -> out/freshtechupdates-episode.mp4 (16:9 YouTube episode), out/thumbnail.png + thumbnail-B.png + thumbnail-C.png, out/youtube.txt
 # Show rotates by weekday (India time) when not given:
 #   1 Mon The Newsroom · 2 Tue The Countdown · 3 Wed Blueprint Lab · 4 Thu Update Arcade
 #   5 Fri World Tour · 6 Sat The Classroom · 7 Sun Paper Studio

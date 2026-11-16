@@ -10,9 +10,9 @@ Free, watermark-free renderer for the daily **@freshtechupdates** content:
 ```bash
 ./setup.sh                          # npm deps, free offline voice model, browser check
 ./make_carousel.sh slides.json      # -> out/carousel/slide-01.png … slide-07.png
-./make_reel.sh reel.json            # -> out/freshtechupdates-reel.mp4 (style rotates by weekday)
+./make_reel.sh reel.json            # -> out/freshtechupdates-reel.mp4 + out/short-cover.png + out/short.txt
 ./make_reel.sh reel.json comic      # force a style: comic | paper | blueprint | neon
-./make_episode.sh episode.json      # -> out/freshtechupdates-episode.mp4 + out/thumbnail.png + out/youtube.txt
+./make_episode.sh episode.json      # -> out/freshtechupdates-episode.mp4 + 3 thumbnails (A/B/C) + out/youtube.txt
 ./make_episode.sh episode.json 4    # force a show (1-7)
 ```
 
@@ -85,3 +85,4 @@ See `example-slides.json` and `example-reel.json`.
 - `longform.py` – daily YouTube episode engine (7 shows, thumbnail, YouTube metadata)
 - `ftlogo.py` – the 3D FT logo as inline SVG
 - `illus.py` – illustration library v2 (used by the episodes and the Reel)
+- `thumbs.py` – YouTube thumbnails (3 designs for Test & Compare) and the Short/Reel cover
