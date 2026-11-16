@@ -91,3 +91,4 @@ See `example-slides.json` and `example-reel.json`.
 - `ftlogo.py` – the 3D FT logo as inline SVG
 - `illus.py` – illustration library v2 (used by the episodes and the Reel)
 - `thumbs.py` – YouTube thumbnails (3 designs for Test & Compare) and the Short/Reel cover
+- `zernio_post.py` – uploads the episode, Short and Reel to Zernio as **drafts**, publishes only when approved (key comes from the environment's network secret, never from this repo)
