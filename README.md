@@ -33,6 +33,11 @@ The episode render takes ~4 min per minute of video: run it in the background
 
 Music (generated in code) changes chord progression by date, so the same show never sounds identical two weeks running.
 
+Inside each episode the stories also change layout (never the same twice in a row):
+**split** (text + illustration), **hero** (huge illustration, headline banner, floating point cards),
+**big type** (giant headline, numbered chips), **steps** (points on a timeline the camera pans along),
+**big number** (count-up stat — used when a story has a real `stat`).
+
 ## episode.json
 
 ```json

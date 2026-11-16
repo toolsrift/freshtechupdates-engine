@@ -166,6 +166,10 @@ def show_css(S):
         tag = f"font-family:FTHead;font-weight:700;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:{'#fff' if light else '#0B1020'};background:{acc};padding:10px 22px;border-radius:999px"
         num = f"font-family:FTHead;font-weight:700;font-size:30px;color:{ink};border:3px solid {ink if light else 'rgba(255,255,255,.5)'};padding:7px 18px;border-radius:999px"
         cap = "background:#1E2452;color:#FFFFFF" if light else "background:rgba(5,7,15,.75);color:#F8FAFC"
+    if fam == "ink": box, cn, nodeb = "background:#fff;border:5px solid #111;box-shadow:8px 8px 0 #111", "#111", "border:5px solid #111"
+    elif fam == "line": box, cn, nodeb = f"background:rgba(0,0,0,.18);border:3px solid {ink}", "#0B3F86" if not S.get("chalk") else "#173226", ""
+    elif S.get("light"): box, cn, nodeb = "background:#fff;box-shadow:0 14px 30px rgba(30,36,82,.16)", "#fff", ""
+    else: box, cn, nodeb = "background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.14);box-shadow:0 20px 40px rgba(0,0,0,.35)", "#0B1020", ""
     return f"""
 .h1{{{h1}}} {accs}
 .tag{{{tag}}} .num{{{num}}}
@@ -175,6 +179,17 @@ def show_css(S):
 .capbox{{{cap}}}
 .kick{{color:{acc}}} .ttl{{color:{ink}}} .date{{color:{sub}}} .tz .tn{{color:{acc}}} .tz{{color:{ink}}}
 .hud{{color:{ink}}} .hud .hp{{background:{acc};color:{'#fff' if S.get('light') or fam=='ink' else '#0B1020'}}}
+.banner{{position:absolute;left:110px;right:110px;top:120px;padding:22px 34px;border-radius:24px;{box}}}
+.stk{{position:absolute;width:430px;display:flex;gap:16px;align-items:center;padding:18px 22px;border-radius:22px;font-family:FTBody;font-weight:800;font-size:33px;line-height:1.15;color:{ink};{box}}}
+.stk .pi,.chip2 .cn{{flex:0 0 48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{acc};color:{cn}}}
+.chips{{position:absolute;display:flex;gap:22px;flex-wrap:wrap}}
+.chip2{{width:340px;display:flex;gap:14px;align-items:center;padding:18px 20px;border-radius:22px;font-family:FTBody;font-weight:800;font-size:31px;line-height:1.15;color:{ink};{box}}}
+.chip2 .cn{{font-family:FTHead;font-weight:700;font-size:26px}}
+.tline{{position:absolute;height:10px;border-radius:5px;background:{acc}}}
+.tnode{{position:absolute;width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:FTHead;font-weight:700;font-size:32px;background:{acc};color:{cn};{nodeb}}}
+.ttext{{position:absolute;width:440px;text-align:center;font-family:FTBody;font-weight:800;font-size:31px;line-height:1.2;color:{ink}}}
+.bigstat .sv{{font-size:220px;text-align:left}} .bigstat .sl{{text-align:left;font-size:38px}} .bigstat{{text-align:left}}
+.pt.sm{{font-size:32px;margin-bottom:22px}} .pt.sm .pi{{flex:0 0 48px;height:48px}}
 .bignum{{color:{acc2}}}
 """
 
@@ -365,6 +380,140 @@ def bot_hud():
             f'<line x1="-44" y1="36" x2="-84" y2="80" stroke="#F3EBDD" stroke-width="10" stroke-linecap="round"/><circle cx="-84" cy="80" r="13" fill="#A3E635"/>'
             f'<line id="hbaR" x1="44" y1="36" x2="84" y2="80" stroke="#F3EBDD" stroke-width="10" stroke-linecap="round"/><circle id="hbhR" cx="84" cy="80" r="13" fill="#A3E635"/></g></svg>')
 
+# ============================================================ story layouts (5 kinds, mixed within an episode)
+def choose_layouts(stories, seed):
+    import random
+    rng = random.Random(seed); cyc = ["hero", "bigtype", "split", "steps"]; rng.shuffle(cyc)
+    out, prev, k = [], None, 0
+    for s in stories:
+        has_stat = isinstance(s.get("stat"), dict) and bool(s["stat"].get("value")) and stat_parts(s["stat"]["value"]) is not None
+        if has_stat and prev != "stat":
+            out.append("stat"); prev = "stat"; continue
+        pick = "split"
+        for _ in range(len(cyc) * 2):
+            c = cyc[k % len(cyc)]; k += 1
+            if c == prev: continue
+            if c == "steps" and len(s.get("points", [])) < 2: continue
+            if c == "bigtype" and len(plain(s["headline"])) > 58: continue
+            pick = c; break
+        out.append(pick); prev = pick
+    return out
+
+def story_station(c):
+    S, fam, st, sid, i, n, p, a, d = c["S"], c["fam"], c["st"], c["sid"], c["i"], c["n"], c["p"], c["a"], c["d"]
+    cam, pre, lay, num_lab, mir = c["cam"], c["pre"], c["layout"], c["num_lab"], c["mir"]
+    s = p["s"]; js = []; rr = -c["r"]
+    W = lambda lx, ly: wpt(p["stn"], lx, ly)
+    shape = scene_for(s); svg, sj = SCENES[shape](sid, a - .95, d + .95, st); js += sj
+    hw, hn = words_html(s["headline"], f"{sid}-h")
+    pts = s.get("points", [])[:3]
+    stat = s.get("stat") if isinstance(s.get("stat"), dict) and s["stat"].get("value") else None
+    v0, vd = p["h0"], p["hd"]; tip = p["bot"][0] if p["bot"] else a + d
+    chk = icon("check" if fam != "ink" else "zap", 30, "#fff")
+    def row(style=""):
+        return (f'<div class="row" id="{sid}-row" style="{style}"><span class="num">{E(num_lab)}</span><span class="tag">{E(s["category"])}</span>'
+                f'<span class="src">Source: {E(s["source"])}</span></div>')
+    def ill(left, top, w): return f'<div class="ill sc" id="{sid}-ill" style="left:{left}px;top:{top}px;width:{w}px;height:{int(w*640/1080)}px"><svg viewBox="0 0 1080 640">{svg}</svg></div>'
+    big = f'<div class="bignum" style="left:1180px;top:40px">{E(num_lab.lstrip("#"))}</div>' if S.get("bignum") else ""
+    js.append(f'tl.fromTo("#{sid}-row",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.45,ease:"expo.out"}},{T(a-.85)})')
+    js += words_js(f"{sid}-h", hn, a - .65, fam)
+    wide = W(960, 540); sgn = 1 if i % 2 else -1
+    def counter(t_st, el):
+        sp = stat_parts(stat["value"])
+        js.append(f'tl.fromTo("#{sid}-stat",{{opacity:0,scale:.6,transformOrigin:"50% 50%"}},{{opacity:1,scale:1,duration:.45,ease:"back.out(2)"}},{T(t_st)})')
+        if not sp: return
+        pre.append(f"const C{i}={{v:0}};")
+        fmt = f'(C{i}.v).toLocaleString("en-US",{{minimumFractionDigits:{sp[2]},maximumFractionDigits:{sp[2]},useGrouping:{"true" if sp[4] or sp[1] >= 10000 else "false"}}})'
+        js.append(f'tl.to(C{i},{{v:{sp[1]},duration:1.6,ease:"power2.out",onUpdate:()=>{{document.getElementById("{el}").textContent={json.dumps(sp[0])}+{fmt}+{json.dumps(sp[3])}}}}},{T(t_st+.1)})')
+        js.append(f'tl.fromTo("#{el}",{{scale:1}},{{scale:1.12,duration:.12,yoyo:true,repeat:1,transformOrigin:"50% 50%"}},{T(t_st+1.7)})')
+    def stat_html(left, top, w, cls="stat"):
+        sp = stat_parts(stat["value"])
+        return (f'<div class="{cls}" id="{sid}-stat" style="left:{left}px;top:{top}px;width:{w}px">'
+                f'<div class="sv" id="{sid}-sv">{E(stat["value"] if not sp else sp[0] + "0" + sp[3])}</div><div class="sl">{E(stat.get("label", ""))}</div></div>')
+    def bot_cam():
+        if p["bot"]:
+            b0 = p["bot"][0]; cam(b0 - .2, .8, *wide, .97, rr, "power2.inOut"); cam(b0 + .6, max(.3, a + d - b0 - .6), *wide, 1.0, rr, "none")
+
+    if lay == "split":
+        tx, ix = c["tx"], c["ix"]
+        hs = hsize(s["headline"], 82 if fam != "ink" else 96)
+        pts_top = 245 + int(hs * 1.08 * min(3, math.ceil(len(plain(s["headline"])) / (860 / (hs * .5))))) + 70
+        ill_top, ill_w = (150, 800) if stat else (215, 880)
+        inner = (big + row(f"left:{tx}px") + f'<div class="hl" style="left:{tx}px"><div class="h1" style="font-size:{hs}px">{hw}</div></div>'
+                 + f'<div class="pts" style="left:{tx}px;top:{pts_top}px">' + "".join(f'<div class="pt" id="{sid}-p{j}"><span class="pi">{chk}</span><span>{E(t)}</span></div>' for j, t in enumerate(pts)) + '</div>'
+                 + ill(ix + (860 - ill_w) // 2, ill_top, ill_w) + (stat_html(ix, 640, 860) if stat else ""))
+        for j in range(len(pts)):
+            js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,x:{-90 if not mir else 90}}},{{opacity:1,x:0,duration:.5,ease:"back.out(1.7)"}},{T(v0+vd*(.42+j*.17))})')
+        if stat: counter(v0 + vd * .3, f"{sid}-sv")
+        k1, k2 = v0 + vd * .28, v0 + vd * .52
+        ic = W(ix + 430, ill_top + 260); tc = W(tx + 430, (pts_top + 150) if pts else 420)
+        lerp = lambda P, f: (wide[0] + (P[0] - wide[0]) * f, wide[1] + (P[1] - wide[1]) * f)
+        cam(a, max(.3, k1 - a), *wide, 1.03, rr, "sine.inOut")
+        cam(k1, .9, *lerp(ic, .1), 1.06, rr + 1.2 * sgn, "power2.inOut"); cam(k1 + .9, max(.3, k2 - k1 - .9), *lerp(ic, .1), 1.09, rr + 1.8 * sgn, "none")
+        cam(k2, .9, *lerp(tc, .1), 1.05, rr - .8 * sgn, "power2.inOut"); cam(k2 + .9, max(.3, tip - k2 - .9), *lerp(tc, .1), 1.08, rr - 1.2 * sgn, "none")
+
+    elif lay == "hero":
+        hs = 70 if len(plain(s["headline"])) <= 40 else 58
+        spots = [(70, 330), (1420, 300), (1410, 610)]
+        stk = "".join(f'<div class="stk" id="{sid}-p{j}" style="left:{x}px;top:{y}px"><span class="pi">{chk}</span><span>{E(t)}</span></div>' for j, (t, (x, y)) in enumerate(zip(pts, spots)))
+        inner = (big + f'<div class="banner" id="{sid}-bn">{row("position:relative;left:0;top:0;margin-bottom:12px")}'
+                 f'<div class="h1" style="font-size:{hs}px">{hw}</div></div>' + ill(400, 285, 1120) + stk)
+        js.append(f'tl.fromTo("#{sid}-bn",{{opacity:0,y:-60}},{{opacity:1,y:0,duration:.5,ease:"back.out(1.6)"}},{T(a-.9)})')
+        for j in range(len(pts)):
+            js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,scale:.3,rotation:{-8 if j % 2 else 8},transformOrigin:"50% 50%"}},{{opacity:1,scale:1,rotation:{-2 if j % 2 else 2},duration:.5,ease:"back.out(2.2)"}},{T(v0+vd*(.4+j*.17))})')
+        ic = W(960, 610); k1, k2 = v0 + vd * .2, v0 + vd * .5
+        cam(a, max(.3, k1 - a), *wide, 1.02, rr, "sine.inOut")
+        cam(k1, 1.1, *ic, 1.16, rr + 1.5 * sgn, "power2.inOut"); cam(k1 + 1.1, max(.3, k2 - k1 - 1.1), *ic, 1.2, rr + 2.2 * sgn, "none")
+        cam(k2, 1.0, *wide, 1.0, rr - 1.0 * sgn, "power2.inOut"); cam(k2 + 1.0, max(.3, tip - k2 - 1.0), *W(960, 520), 1.04, rr - 1.6 * sgn, "none")
+
+    elif lay == "bigtype":
+        nch = len(plain(s["headline"])); hs = 136 if nch <= 26 else 118 if nch <= 40 else 100
+        chips = "".join(f'<div class="chip2" id="{sid}-p{j}"><span class="cn">{j+1}</span><span>{E(t)}</span></div>' for j, t in enumerate(pts))
+        inner = (big + row("left:0;right:0;justify-content:center") +
+                 f'<div class="hl" style="left:110px;width:1700px;top:235px;text-align:center"><div class="h1" style="font-size:{hs}px;line-height:1.0">{hw}</div></div>'
+                 f'<div class="chips" style="left:110px;top:{235 + int(hs * 1.02 * (1 if nch <= 22 else 2 if nch <= 44 else 3)) + 60}px;width:1060px">{chips}</div>' + ill(1190, 500, 640))
+        for j in range(len(pts)):
+            js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,y:60}},{{opacity:1,y:0,duration:.45,ease:"back.out(2)"}},{T(v0+vd*(.38+j*.16))})')
+        tc = W(960, 360); bc = W(960, 600); k1, k2 = v0 + vd * .3, v0 + vd * .55
+        cam(a - .2, .9, *tc, 1.14, rr, "power3.out"); cam(a + .7, max(.3, k1 - a - .7), *tc, 1.18, rr + .8 * sgn, "none")
+        cam(k1, 1.0, *wide, 1.0, rr, "power2.inOut"); cam(k1 + 1.0, max(.3, k2 - k1 - 1.0), *wide, 1.03, rr - .8 * sgn, "none")
+        cam(k2, 1.0, *bc, 1.08, rr + 1.0 * sgn, "power2.inOut"); cam(k2 + 1.0, max(.3, tip - k2 - 1.0), *bc, 1.11, rr + 1.6 * sgn, "none")
+
+    elif lay == "steps":
+        hs = min(hsize(s["headline"], 78 if fam != "ink" else 92), 78 if fam != "ink" else 92)
+        m = len(pts); xs = [420 + j * (1080 / max(1, m - 1)) for j in range(m)] if m > 1 else [960]
+        nodes = "".join(f'<div class="tnode" id="{sid}-n{j}" style="left:{x-34:.0f}px;top:606px">{j+1}</div>'
+                        f'<div class="ttext" id="{sid}-p{j}" style="left:{x-220:.0f}px;top:672px">{E(t)}</div>' for j, (x, t) in enumerate(zip(xs, pts)))
+        inner = (big + row("left:110px") + f'<div class="hl" style="left:110px;width:1020px"><div class="h1" style="font-size:{hs}px">{hw}</div></div>'
+                 + ill(1180, 130, 660) + f'<div class="tline" id="{sid}-tl" style="left:{xs[0]:.0f}px;width:{xs[-1]-xs[0]:.0f}px;top:636px"></div>' + nodes)
+        js.append(f'tl.fromTo("#{sid}-tl",{{scaleX:0,transformOrigin:"0% 50%"}},{{scaleX:1,duration:{T(max(1.0, vd*.5))},ease:"power1.inOut"}},{T(v0+vd*.35)})')
+        k1 = v0 + vd * .2
+        cam(a, max(.3, k1 - a), *wide, 1.03, rr, "sine.inOut")
+        cam(k1, .9, *W(1500, 400), 1.08, rr + 1.2 * sgn, "power2.inOut")
+        for j, x in enumerate(xs):
+            tj = v0 + vd * (.38 + j * (.4 / max(1, m)))
+            js.append(f'tl.fromTo("#{sid}-n{j}",{{scale:0}},{{scale:1,duration:.4,ease:"back.out(3)"}},{T(tj)})')
+            js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,y:30}},{{opacity:1,y:0,duration:.45,ease:"back.out(1.8)"}},{T(tj+.1)})')
+            nxt = v0 + vd * (.38 + (j + 1) * (.4 / max(1, m))) if j < m - 1 else tip
+            cam(tj - .2, .8, *W(960 + (x - 960) * .08, 575), 1.04, rr + (.8 if j % 2 else -.8), "power2.inOut")
+            cam(tj + .6, max(.3, nxt - tj - .8), *W(960 + (x - 960) * .1, 575), 1.06, rr + (1.2 if j % 2 else -1.2), "none")
+
+    else:  # stat
+        hs = min(hsize(s["headline"], 72 if fam != "ink" else 86), 72 if fam != "ink" else 86)
+        sp = stat_parts(stat["value"])
+        inner = (big + row("left:110px") + f'<div class="hl" style="left:110px;width:900px"><div class="h1" style="font-size:{hs}px">{hw}</div></div>'
+                 + stat_html(110, 480, 900, "stat bigstat") + ill(1060, 170, 780)
+                 + f'<div class="pts" style="left:1100px;top:650px;width:720px">' + "".join(f'<div class="pt sm" id="{sid}-p{j}"><span class="pi">{chk}</span><span>{E(t)}</span></div>' for j, t in enumerate(pts[:2])) + '</div>')
+        t_st = v0 + vd * .22; counter(t_st, f"{sid}-sv")
+        for j in range(min(2, len(pts))):
+            js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,x:80}},{{opacity:1,x:0,duration:.5,ease:"back.out(1.7)"}},{T(v0+vd*(.55+j*.15))})')
+        nc = W(640, 560); rc = W(1400, 540); k2 = v0 + vd * .52
+        cam(a, max(.3, t_st - a), *wide, 1.03, rr, "sine.inOut")
+        cam(t_st - .1, 1.0, *nc, 1.14, rr - 1.2 * sgn, "power3.inOut"); cam(t_st + .9, max(.3, k2 - t_st - .9), *nc, 1.18, rr - 1.8 * sgn, "none")
+        cam(k2, 1.0, *rc, 1.08, rr + 1.0 * sgn, "power2.inOut"); cam(k2 + 1.0, max(.3, tip - k2 - 1.0), *rc, 1.11, rr + 1.5 * sgn, "none")
+    bot_cam()
+    return inner, js
+
 # ============================================================ build
 def build(data, proj, show_no, date=None):
     from kokoro_onnx import Kokoro
@@ -451,6 +600,7 @@ def build(data, proj, show_no, date=None):
     p0 = plan[0]; c0 = wpt(p0["stn"], 960, 540); setcam(*c0, 1.18, -p0["stn"][2])
     cam(STING - .1, p0["d"] * .9, *c0, 1.0, -p0["stn"][2], "sine.inOut")
 
+    LAYOUTS = choose_layouts([p['s'] for p in plan if p['kind'] == 'story'], seed)
     chap = []
     for p in plan:
         X, Y, r = p["stn"]; i = p["idx"]; a, d = p["a"], p["d"]; sid = f"st{i}"
@@ -487,55 +637,9 @@ def build(data, proj, show_no, date=None):
             chap.append((a, "Your turn"))
         else:
             s = p["s"]; num_lab = S["label"](i, n)
-            shape = scene_for(s); svg, sj = SCENES[shape](sid, a - .95, d + .95, st)  # build starts while the camera lands
-            hw, hn = words_html(s["headline"], f"{sid}-h")
-            pts = s.get("points", [])[:3]; stat = s.get("stat") if isinstance(s.get("stat"), dict) and s["stat"].get("value") else None
-            hs = hsize(s["headline"], 82 if fam != "ink" else 96)
-            pts_top = 245 + int(hs * 1.08 * min(3, math.ceil(len(plain(s["headline"])) / (860 / (hs * .5))))) + 70
-            pts_html = "".join(f'<div class="pt" id="{sid}-p{j}"><span class="pi">{icon("check" if fam != "ink" else "zap", 34, "#fff")}</span><span>{E(pt)}</span></div>' for j, pt in enumerate(pts))
-            ill_top, ill_w = (150, 800) if stat else (215, 880)
-            stat_html = ""
-            if stat:
-                sp = stat_parts(stat["value"])
-                stat_html = (f'<div class="stat" id="{sid}-stat" style="left:{ix}px;top:640px;width:860px">'
-                             f'<div class="sv" id="{sid}-sv">{E(stat["value"] if not sp else sp[0] + "0" + sp[3])}</div><div class="sl">{E(stat.get("label", ""))}</div></div>')
-            big = f'<div class="bignum" style="left:{ix+120}px;top:40px">{E(num_lab.lstrip("#"))}</div>' if S.get("bignum") else ""
-            inner = (f'{big}<div class="row" id="{sid}-row" style="left:{tx}px"><span class="num">{E(num_lab)}</span><span class="tag">{E(s["category"])}</span><span class="src">Source: {E(s["source"])}</span></div>'
-                     f'<div class="hl" style="left:{tx}px"><div class="h1" style="font-size:{hs}px">{hw}</div></div>'
-                     f'<div class="pts" style="left:{tx}px;top:{pts_top}px">{pts_html}</div>'
-                     f'<div class="ill sc" id="{sid}-ill" style="left:{ix + (860-ill_w)//2}px;top:{ill_top}px;width:{ill_w}px;height:{int(ill_w*640/1080)}px"><svg viewBox="0 0 1080 640">{svg}</svg></div>'
-                     f'{stat_html}')
-            js += sj
-            js.append(f'tl.fromTo("#{sid}-row",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.45,ease:"expo.out"}},{T(a-.85)})')
-            js += words_js(f"{sid}-h", hn, a - .65, fam)
-            v0, vd = p["h0"], p["hd"]
-            for j in range(len(pts)):
-                js.append(f'tl.fromTo("#{sid}-p{j}",{{opacity:0,x:{-90 if not mir else 90}}},{{opacity:1,x:0,duration:.5,ease:"back.out(1.7)"}},{T(v0+vd*(.42+j*.17))})')
-            if stat:
-                sp = stat_parts(stat["value"]); t_st = v0 + vd * .3
-                js.append(f'tl.fromTo("#{sid}-stat",{{opacity:0,scale:.6,transformOrigin:"50% 50%"}},{{opacity:1,scale:1,duration:.45,ease:"back.out(2)"}},{T(t_st)})')
-                if sp:
-                    pre.append(f"const C{i}={{v:0}};")
-                    fmt = f'(C{i}.v).toLocaleString("en-US",{{minimumFractionDigits:{sp[2]},maximumFractionDigits:{sp[2]},useGrouping:{"true" if sp[4] or sp[1] >= 10000 else "false"}}})'
-                    js.append(f'tl.to(C{i},{{v:{sp[1]},duration:1.4,ease:"power2.out",onUpdate:()=>{{document.getElementById("{sid}-sv").textContent={json.dumps(sp[0])}+{fmt}+{json.dumps(sp[3])}}}}},{T(t_st+.1)})')
-                    js.append(f'tl.fromTo("#{sid}-sv",{{scale:1}},{{scale:1.12,duration:.12,yoyo:true,repeat:1,transformOrigin:"50% 50%"}},{T(t_st+1.5)})')
-            # camera choreography inside the station (never static)
-            rr = -r
-            w_ = wpt(p["stn"], 960, 540); ill_c = wpt(p["stn"], ix + 430, ill_top + 260); txt_c = wpt(p["stn"], tx + 430, (pts_top + 150) if pts else 420)
-            stat_c = wpt(p["stn"], ix + 430, 720)
-            k1 = v0 + vd * .28; k2 = v0 + vd * .52
-            lerp = lambda P, f: (w_[0] + (P[0] - w_[0]) * f, w_[1] + (P[1] - w_[1]) * f)
-            ill_t = lerp(ill_c, .1); txt_t = lerp(txt_c if pts else stat_c, .1)
-            cam(a, max(.3, k1 - a), *w_, 1.03, rr, "sine.inOut")
-            cam(k1, .9, *ill_t, 1.06, rr + (1.2 if i % 2 else -1.2), "power2.inOut")
-            cam(k1 + .9, max(.3, k2 - k1 - .9), *ill_t, 1.09, rr + (1.8 if i % 2 else -1.8), "none")
-            if pts or stat:
-                cam(k2, .9, *txt_t, 1.05, rr - (.8 if i % 2 else -.8), "power2.inOut")
-                cam(k2 + .9, max(.3, (p["bot"][0] if p["bot"] else a + d) - k2 - .9), *txt_t, 1.08, rr - (1.2 if i % 2 else -1.2), "none")
-            if p["bot"]:
-                b0, bd, btxt = p["bot"]
-                cam(b0 - .2, .8, *w_, .97, rr, "power2.inOut")
-                cam(b0 + .6, max(.3, a + d - b0 - .6), *w_, 1.0, rr, "none")
+            inner, sj2 = story_station(dict(S=S, fam=fam, st=st, sid=sid, i=i, n=n, p=p, a=a, d=d, mir=mir, tx=tx, ix=ix,
+                                            r=r, cam=cam, pre=pre, layout=LAYOUTS[i - 1], num_lab=num_lab))
+            js += sj2
             chap.append((a - TR * .5, plain(s["headline"])))
         cls = "stn"
         html_st.append(f'<div class="{cls}" id="{sid}" style="left:{X:.0f}px;top:{Y:.0f}px;transform:rotate({r}deg)">'
@@ -609,7 +713,7 @@ def build(data, proj, show_no, date=None):
         js.append(f'tl.to("#hbaR",{{attr:{{x2:80,y2:-20}},duration:.25}},{T(b0)}); tl.to("#hbhR",{{attr:{{cx:80,cy:-20}},duration:.25}},{T(b0)})')
         js.append(f'tl.to("#hbaR",{{attr:{{x2:84,y2:80}},duration:.25}},{T(b0+bd)}); tl.to("#hbhR",{{attr:{{cx:84,cy:80}},duration:.25}},{T(b0+bd)})')
         js.append(f'tl.to("#bothud",{{y:420,duration:.45,ease:"power2.in"}},{T(b0+bd+.35)})')
-        js.append(f'tl.to("#st{p["idx"]}-stat",{{opacity:.12,duration:.3}},{T(b0-.4)})') if (p["s"].get("stat") or {}).get("value") else None
+        js.append(f'tl.to("#st{p["idx"]}-stat",{{opacity:.12,duration:.3}},{T(b0-.4)})') if (p["s"].get("stat") or {}).get("value") and LAYOUTS[p["idx"] - 1] == "split" else None
     for at, amp in botamp:
         js.append(f'tl.set("#hbm",{{attr:{{height:{9+min(16, amp*160):.1f},y:{-36-min(8, amp*80):.1f}}}}},{T(at)})')
     js.append('tl.fromTo("#hb",{y:0},{y:-10,duration:.45,ease:"sine.inOut",repeat:-1,yoyo:true},0)'.replace("repeat:-1", f"repeat:{int(total/.45)}"))
@@ -671,7 +775,7 @@ window.__timelines["main"] = tl;
 </script>
 </body></html>"""
     (proj / "index.html").write_text(doc)
-    return dict(total=total, chapters=chap, show=S, order=order, stories=stories, seed=seed, date=date)
+    return dict(layouts=LAYOUTS, total=total, chapters=chap, show=S, order=order, stories=stories, seed=seed, date=date)
 
 # ============================================================ thumbnail + youtube metadata
 def thumbnail(data, info, out_png):
@@ -733,4 +837,4 @@ if __name__ == "__main__":
     metadata(data, info, out / "youtube.txt")
     import thumbs
     thumbs.long_thumbs(data, info["show"]["name"], out)   # thumbnail.png (A), thumbnail-B.png, thumbnail-C.png
-    print(f"built {sys.argv[2]} · show {show} {info['show']['name']} · {info['total']:.1f}s ({ts(info['total'])}) · chapters: {len(info['chapters'])}")
+    print(f"built {sys.argv[2]} · show {show} {info['show']['name']} · {info['total']:.1f}s ({ts(info['total'])}) · layouts: {' '.join(info['layouts'])}")
