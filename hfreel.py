@@ -2,7 +2,7 @@
 """freshtechupdates daily Reel v3 -> HyperFrames project (1080x1920, 30fps, ~30-40s).
 Usage: python3 hfreel.py reel.json <project_dir> [seed]
 Then:  npx hyperframes render <project_dir> -o out.mp4
-reel.json: {"hook":{"headline":"<the single most surprising fact, max 7 words, *accent*>","more":"+2 more AI updates","voice":"..."},
+reel.json: {"hook":{"headline":"<the single most surprising fact, max 7 words, *accent*>","more":"+2 more AI & tech updates","voice":"..."},
             "stories":[{"category","shape","headline"(4-6 words, *accent*),"source","voice"} x3],
             "outro_question":"Which update surprised you most?","outro_voice":"..."}
 shape: rocket | robot | shield | phone | bolt | chip | globe  (3D object that matches the story)
@@ -32,13 +32,11 @@ def pick_shape(s):
         if re.search(pat, txt): return shp
     return "chip"
 
+import itertools
+from ftlogo import logo_svg
+_LID = itertools.count()
 def chip_svg(size):
-    lines = "".join(f'<line x1="{x}" y1="258" x2="{x}" y2="196"/><line x1="{x}" y1="822" x2="{x}" y2="884"/>'
-                    f'<line x1="258" y1="{x}" x2="196" y2="{x}"/><line x1="822" y1="{x}" x2="884" y2="{x}"/>' for x in (370, 483, 597, 710))
-    return (f'<svg width="{size}" height="{size}" viewBox="180 180 720 720" aria-hidden="true"><g stroke="{VIO}" stroke-width="22" stroke-linecap="round">{lines}</g>'
-            f'<rect x="260" y="260" width="560" height="560" rx="80" fill="#111833" stroke="{ACC}" stroke-width="22"/>'
-            f'<circle cx="742" cy="338" r="34" fill="{LIME}"/>'
-            f'<text x="540" y="552" text-anchor="middle" dominant-baseline="middle" font-family="FTSpace" font-weight="700" font-size="300" letter-spacing="-12" fill="{INK}">FT</text></svg>')
+    return logo_svg(round(size * 1.45), uid=f"lg{next(_LID)}")
 
 def words_html(text, pid):
     out, i = [], 0
@@ -169,7 +167,7 @@ def hook_scene(h, a, d):
          f'<div id="hook-r" class="h1" style="position:absolute;left:0;right:0;font-size:124px;color:#ff2e88;mix-blend-mode:screen;opacity:0">{plain}</div>'
          f'<div id="hook-c" class="h1" style="position:absolute;left:0;right:0;font-size:124px;color:#22D3EE;mix-blend-mode:screen;opacity:0">{plain}</div>'
          f'<div id="hook-t" class="h1" style="position:relative;font-size:124px">{fw}</div></div>'
-         f'<div id="hook-more" style="position:absolute;left:0;right:0;top:1010px;text-align:center"><span class="h1" style="font-size:52px;padding:14px 34px;border-radius:999px;background:#A3E635;color:#0A0F1F;letter-spacing:-1px">{html.escape(h.get("more","+2 more AI updates"))}</span></div></div>')
+         f'<div id="hook-more" style="position:absolute;left:0;right:0;top:1010px;text-align:center"><span class="h1" style="font-size:52px;padding:14px 34px;border-radius:999px;background:#A3E635;color:#0A0F1F;letter-spacing:-1px">{html.escape(h.get("more","+2 more AI & tech updates"))}</span></div></div>')
     js = [f'tl.fromTo("#hook-t",{{scale:1}},{{scale:1.05,duration:{d},ease:"none"}},0)']
     rnd = random.Random(7)
     for t0 in (0.12, 0.85, 1.7):
@@ -336,7 +334,7 @@ def build(data, proj, seed):
     stories = data["stories"][:3]; total_st = len(stories)
     plan = [("hook", data["hook"], data["hook"]["voice"])]
     plan += [(order[i % 3], s, s["voice"]) for i, s in enumerate(stories)]
-    plan.append(("outro", None, data.get("outro_voice", "Which one surprised you most? Tell me in the comments, and follow fresh tech updates for daily AI news.")))
+    plan.append(("outro", None, data.get("outro_voice", "Which one surprised you most? Tell me in the comments, and follow fresh tech updates for daily AI & tech updates.")))
 
     audio, t, scenes = [], 0.0, []
     for st, s, v in plan:

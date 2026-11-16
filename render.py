@@ -27,19 +27,11 @@ def esc(t):
     t = html.escape(t)
     return re.sub(r"\*(.+?)\*", r'<span class="acc">\1</span>', t)
 
-CHIP = '''<svg width="{s}" height="{s}" viewBox="180 180 720 720" aria-hidden="true">
-<g stroke="#8B5CF6" stroke-width="22" stroke-linecap="round">
-''' + "".join(
-    f'<line x1="{x}" y1="258" x2="{x}" y2="196"/><line x1="{x}" y1="822" x2="{x}" y2="884"/>'
-    f'<line x1="258" y1="{x}" x2="196" y2="{x}"/><line x1="822" y1="{x}" x2="884" y2="{x}"/>'
-    for x in (370, 483, 597, 710)) + '''</g>
-<rect x="260" y="260" width="560" height="560" rx="80" fill="#111833" stroke="#22D3EE" stroke-width="22"/>
-<circle cx="742" cy="338" r="34" fill="#A3E635"/>
-<text x="540" y="552" text-anchor="middle" dominant-baseline="middle" font-family="SG" font-weight="700" font-size="300" letter-spacing="-12" fill="#F8FAFC">FT</text>
-</svg>'''
-
+import itertools
+from ftlogo import logo_svg
+_LID = itertools.count()
 def chip(s):
-    return CHIP.replace("{s}", str(s))
+    return logo_svg(round(s * 1.45), uid=f"lg{next(_LID)}")
 
 CSS = f'''
 @font-face{{font-family:SG;font-weight:500;src:url("file://{NM}/@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2")}}
@@ -130,7 +122,7 @@ def cta(n, total):
         f'<div class="cta">{chip(300)}'
         '<div style="font-family:SG;font-weight:700;font-size:44px;color:#CBD5E1;margin-top:20px">Follow for daily updates</div>'
         '<div style="font-family:SG;font-weight:700;font-size:76px;letter-spacing:-2px">@<span class="lime">fresh</span>techupdates</div>'
-        '<div style="font-size:34px;color:#94A3B8;font-weight:500">Daily AI &amp; tech news, made simple</div>'
+        '<div style="font-size:34px;color:#94A3B8;font-weight:500">Daily AI &amp; tech updates, made simple</div>'
         f'<div class="btns"><div class="btn">{icon("heart",34,"#F8FAFC","2.2")}Like</div>'
         f'<div class="btn">{icon("bookmark",34,"#A3E635","2.2")}Save</div>'
         f'<div class="btn">{icon("send",34,"#22D3EE","2.2")}Share</div></div></div>'

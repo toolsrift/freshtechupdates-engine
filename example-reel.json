@@ -1,8 +1,8 @@
 {
   "hook": {
     "headline": "Claude's maker starts its *IPO* roadshow",
-    "more": "+2 more AI updates",
-    "voice": "Claude's maker just started its IPO roadshow. Plus two more big AI updates."
+    "more": "+2 more AI & tech updates",
+    "voice": "Claude's maker just started its IPO roadshow. Plus two more big AI and tech updates."
   },
   "stories": [
     {"category": "AI business", "shape": "rocket", "headline": "Anthropic heads for the *stock market*", "source": "theneuron.ai",
@@ -13,5 +13,5 @@
      "voice": "And finally. After rulings in Norway and Brazil, Meta has paused terms that would have let it scrape business websites."}
   ],
   "outro_question": "Which update *surprised* you most?",
-  "outro_voice": "Which one surprised you most? Tell me in the comments, and follow freshtechupdates for daily AI news."
+  "outro_voice": "Which one surprised you most? Tell me in the comments, and follow freshtechupdates for daily AI & tech updates."
 }

@@ -410,7 +410,7 @@ def hook_scene(h, a, d, st):
     m = (f'<div class="inner" id="hk-in">'
          f'<div style="position:absolute;left:0;right:0;top:330px;text-align:center"><span class="tag" id="hk-k" style="font-size:{48 if st=="comic" else 32}px">{kick}</span></div>'
          f'<div style="position:absolute;left:66px;right:66px;top:440px;text-align:center"><div class="h1" id="hk-hb" style="font-size:{size}px">{hw}</div></div>'
-         f'<div id="hk-more" style="position:absolute;left:0;right:0;top:960px;text-align:center"><span class="badge">{E(h.get("more","+2 more AI updates"))}</span></div>'
+         f'<div id="hk-more" style="position:absolute;left:0;right:0;top:960px;text-align:center"><span class="badge">{E(h.get("more","+2 more AI & tech updates"))}</span></div>'
          f'<div class="sc" style="top:1060px;height:300px"><svg width="1080" height="300" viewBox="0 0 1080 300">{bot_svg("hk", 540, 170, .9, st)}</svg></div></div>')
     js = [f'tl.fromTo("#hk-k",{{scale:1.4,rotation:-12}},{{scale:1,rotation:-3,duration:.35,ease:"back.out(3)"}},{T(a)})']
     # frame 0 is the cover: headline fully visible from the first frame, then a punch-in
@@ -430,6 +430,31 @@ def outro_scene(q, a, d, st):
     js = ent(st, ["oq-botb"], a + .05) + bot_js("oq", a, d, a + .5, "wave") + words_js("oq", nq, a + .25, st, .08)
     js += [f'tl.fromTo("#oq-c",{{opacity:0,scale:.5}},{{opacity:1,scale:1,duration:.4,ease:"back.out(2.5)"}},{T(a+.9)})',
            f'tl.fromTo("#oq-f",{{opacity:0,y:20}},{{opacity:1,y:0,duration:.4}},{T(a+1.1)})']
+    return m, js
+
+
+def cta_scene(a, d):
+    """Brand end card (same on every style): points viewers to the full YouTube episode."""
+    play = ('<svg width="150" height="106" viewBox="0 0 150 106"><rect width="150" height="106" rx="30" fill="#FF0033"/>'
+            '<path d="M60,30 L102,53 L60,76 Z" fill="#fff"/></svg>')
+    m = ('<div class="full" style="background:radial-gradient(circle at 50% 38%,#16224d,#05070F 72%)"></div>'
+         '<div class="full" style="background:radial-gradient(circle,rgba(243,235,221,.18) 1.5px,transparent 2.5px) 0 0/60px 60px"></div>'
+         f'<div id="ct-logo" style="position:absolute;left:0;right:0;top:330px;display:flex;justify-content:center">{chip_logo(330)}</div>'
+         '<div id="ct-k" style="position:absolute;left:0;right:0;top:760px;text-align:center;font-family:FTCta;font-weight:700;font-size:44px;letter-spacing:10px;color:#A3E635">WANT ALL OF TODAY\'S UPDATES?</div>'
+         '<div id="ct-h" style="position:absolute;left:60px;right:60px;top:840px;text-align:center;font-family:FTCta;font-weight:700;font-size:118px;line-height:1.02;color:#F8FAFC">Watch the <span style="color:#22D3EE">full episode</span></div>'
+         f'<div id="ct-yt" style="position:absolute;left:0;right:0;top:1130px;display:flex;justify-content:center;align-items:center;gap:26px">{play}'
+         '<span style="font-family:FTCta;font-weight:700;font-size:58px;color:#F3EBDD">on YouTube</span></div>'
+         '<div id="ct-f" style="position:absolute;left:0;right:0;top:1330px;text-align:center;font-family:FTCta;font-weight:700;font-size:56px;color:#F8FAFC">'
+         '<span style="color:#22D3EE">@</span>freshtechupdates</div>'
+         '<div id="ct-s" style="position:absolute;left:0;right:0;top:1430px;text-align:center;font-family:FTCta;font-weight:700;font-size:38px;color:#94A3B8">Subscribe for daily AI &amp; tech updates</div>')
+    js = [f'tl.to("#top",{{opacity:0,duration:.2}},{T(a)})', f'tl.fromTo("#ct-logo",{{scale:0,rotation:-25,opacity:0}},{{scale:1,rotation:0,opacity:1,duration:.55,ease:"back.out(1.8)"}},{T(a+.05)})',
+          f'tl.fromTo("#ct-k",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.35}},{T(a+.35)})',
+          f'tl.fromTo("#ct-h",{{opacity:0,scale:1.3}},{{opacity:1,scale:1,duration:.4,ease:"expo.out"}},{T(a+.55)})',
+          f'tl.fromTo("#ct-yt",{{opacity:0,y:40}},{{opacity:1,y:0,duration:.4,ease:"back.out(2)"}},{T(a+.85)})',
+          f'tl.to("#ct-yt svg",{{scale:1.1,duration:.35,yoyo:true,repeat:{max(1, int((d-1.3)/.35))},ease:"sine.inOut",transformOrigin:"50% 50%"}},{T(a+1.3)})',
+          f'tl.fromTo("#ct-f",{{opacity:0}},{{opacity:1,duration:.3}},{T(a+1.1)})',
+          f'tl.fromTo("#ct-s",{{opacity:0}},{{opacity:1,duration:.3}},{T(a+1.3)})',
+          f'tl.to("#ct-logo",{{y:-14,duration:.6,yoyo:true,repeat:{max(1, int((d-.6)/.6))},ease:"sine.inOut"}},{T(a+.6)})']
     return m, js
 
 # ------------------------------------------------------------------ audio
@@ -459,11 +484,11 @@ def pop(dur=0.18):
     t = np.arange(int(dur * SR)) / SR; f = 900 * np.exp(-t * 25) + 300
     return (0.35 * np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 28)).astype(np.float32)
 
+import itertools
+from ftlogo import logo_svg
+_LID = itertools.count()
 def chip_logo(size):
-    lines = "".join(f'<line x1="{x}" y1="258" x2="{x}" y2="196"/><line x1="{x}" y1="822" x2="{x}" y2="884"/><line x1="258" y1="{x}" x2="196" y2="{x}"/><line x1="822" y1="{x}" x2="884" y2="{x}"/>' for x in (370, 483, 597, 710))
-    return (f'<svg width="{size}" height="{size}" viewBox="180 180 720 720"><g stroke="#8B5CF6" stroke-width="22" stroke-linecap="round">{lines}</g>'
-            f'<rect x="260" y="260" width="560" height="560" rx="80" fill="#111833" stroke="#22D3EE" stroke-width="22"/><circle cx="742" cy="338" r="34" fill="#A3E635"/>'
-            f'<text x="540" y="552" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-weight="700" font-size="300" fill="#F8FAFC">FT</text></svg>')
+    return logo_svg(round(size * 1.45), uid=f"lg{next(_LID)}")
 
 def background(st):
     if st == "paper":
@@ -480,7 +505,7 @@ def background(st):
         return ('<div id="bgc" class="full"></div><div id="rays" style="position:absolute;left:-900px;top:-500px;width:2880px;height:2880px"></div><div id="dots" class="full"></div>',
                 ['tl.fromTo("#rays",{rotation:0},{rotation:25,duration:TOTAL,ease:"none"},0)'])
     return ('<div id="bgc" class="full"></div><div id="bpgrid" class="full"></div><div id="frame"></div>'
-            '<div id="tblock">PROJECT: FRESHTECHUPDATES<br>DWG: DAILY AI BRIEF<br>SCALE: 1:1 · REV A</div>', [])
+            '<div id="tblock">PROJECT: FRESHTECHUPDATES<br>DWG: DAILY AI &amp; TECH BRIEF<br>SCALE: 1:1 · REV A</div>', [])
 
 def build(data, proj, st):
     from kokoro_onnx import Kokoro
@@ -488,7 +513,8 @@ def build(data, proj, st):
     k = Kokoro(str(BASE / "kokoro-v1.0.onnx"), str(BASE / "voices-v1.0.bin"))
     proj = pathlib.Path(proj); (proj / "assets/fonts").mkdir(parents=True, exist_ok=True); (proj / "assets/lib").mkdir(parents=True, exist_ok=True)
     shutil.copy(NM / "gsap/dist/gsap.min.js", proj / "assets/lib/gsap.min.js")
-    ff = ""
+    shutil.copy(NM / "@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2", proj / "assets/fonts/ftcta.woff2")
+    ff = "@font-face{font-family:FTCta;font-weight:700;src:url('assets/fonts/ftcta.woff2')}\n"
     for fam, wt, src in S["fonts"]:
         dst = f"{fam}-{wt}.woff2"; shutil.copy(NM / src, proj / "assets/fonts" / dst)
         ff += f"@font-face{{font-family:{fam};font-weight:{wt};src:url('assets/fonts/{dst}')}}\n"
@@ -496,11 +522,12 @@ def build(data, proj, st):
         pass
     stories = data["stories"][:3]; ns = len(stories)
     plan = [("hook", data["hook"], data["hook"]["voice"])] + [("story", s, s["voice"]) for s in stories]
-    plan.append(("outro", None, data.get("outro_voice", "Which one surprised you most? Tell me in the comments, and follow freshtechupdates for daily AI news.")))
+    plan.append(("outro", None, data.get("outro_voice", "Which one surprised you most? Tell me in the comments.")))
+    plan.append(("cta", None, data.get("cta_voice", "Want all of today's updates? Watch the full episode on YouTube, at freshtechupdates.")))
     audio, t, scenes = [], 0.0, []
     for kind, s, v in plan:
         aud, ws = narrate(k, v)
-        lead = 0.3; extra = 0.9 if kind == "story" else 0.35
+        lead = 0.3; extra = 0.9 if kind == "story" else (1.4 if kind == "cta" else 0.35)
         dur = round((lead + len(aud) / SR + extra) * FPS) / FPS
         seg = np.zeros(int(round(dur * SR)), np.float32); seg[int(lead * SR):int(lead * SR) + len(aud)] = aud
         audio.append(seg); scenes.append(dict(kind=kind, s=s, start=round(t, 4), dur=dur, words=[(w, t + lead + b, t + lead + e) for w, b, e in ws])); t += dur
@@ -520,6 +547,7 @@ def build(data, proj, st):
         a, d = sc["start"], sc["dur"]
         if sc["kind"] == "hook": m, j = hook_scene(sc["s"], a, d, st)
         elif sc["kind"] == "outro": m, j = outro_scene(data.get("outro_question", "Which update *surprised* you most?"), a, d, st)
+        elif sc["kind"] == "cta": m, j = cta_scene(a, d)
         else: m, j = story_scene(i, ns, sc["s"], a, d, st)
         body.append(f'<div id="scn{i}" class="clip scene" data-start="{a}" data-duration="{d}" data-track-index="2" style="z-index:5">{m}</div>')
         js += j
