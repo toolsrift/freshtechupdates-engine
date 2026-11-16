@@ -570,11 +570,11 @@ def build(data, proj, show_no, date=None):
             hs = hsize(s["headline"], 82 if fam != "ink" else 96)
             pts_top = 245 + int(hs * 1.08 * min(3, math.ceil(len(plain(s["headline"])) / (860 / (hs * .5))))) + 70
             pts_html = "".join(f'<div class="pt" id="{sid}-p{j}"><span class="pi">{icon("check" if fam != "ink" else "zap", 34, "#fff")}</span><span>{E(pt)}</span></div>' for j, pt in enumerate(pts))
-            ill_top, ill_w = (165, 880) if stat else (215, 880)
+            ill_top, ill_w = (150, 800) if stat else (215, 880)
             stat_html = ""
             if stat:
                 sp = stat_parts(stat["value"])
-                stat_html = (f'<div class="stat" id="{sid}-stat" style="left:{ix}px;top:705px;width:860px">'
+                stat_html = (f'<div class="stat" id="{sid}-stat" style="left:{ix}px;top:640px;width:860px">'
                              f'<div class="sv" id="{sid}-sv">{E(stat["value"] if not sp else sp[0] + "0" + sp[3])}</div><div class="sl">{E(stat.get("label", ""))}</div></div>')
             big = f'<div class="bignum" style="left:{ix+120}px;top:40px">{E(num_lab.lstrip("#"))}</div>' if S.get("bignum") else ""
             inner = (f'{big}<div class="row" id="{sid}-row" style="left:{tx}px"><span class="num">{E(num_lab)}</span><span class="tag">{E(s["category"])}</span><span class="src">Source: {E(s["source"])}</span></div>'
@@ -599,7 +599,7 @@ def build(data, proj, show_no, date=None):
             # camera choreography inside the station (never static)
             rr = -r
             w_ = wpt(p["stn"], 960, 540); ill_c = wpt(p["stn"], ix + 430, ill_top + 260); txt_c = wpt(p["stn"], tx + 430, (pts_top + 150) if pts else 420)
-            stat_c = wpt(p["stn"], ix + 430, 800)
+            stat_c = wpt(p["stn"], ix + 430, 720)
             k1 = v0 + vd * .28; k2 = v0 + vd * .52
             lerp = lambda P, f: (w_[0] + (P[0] - w_[0]) * f, w_[1] + (P[1] - w_[1]) * f)
             ill_t = lerp(ill_c, .1); txt_t = lerp(txt_c if pts else stat_c, .1)
