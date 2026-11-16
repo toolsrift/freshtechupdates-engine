@@ -9,8 +9,15 @@
       "headline": "Hackers use *deepfake* bosses on fake Zoom calls",
       "scene": "shield",
       "voice": "North Korea linked hackers are joining video calls with deepfake versions of trusted crypto executives. Mid-call, the fake executive says your audio is broken and asks you to install a quick fix. That fix is malware. It's part of a bigger pattern: North Korea stole over two billion dollars in crypto in 2025.",
-      "points": ["Deepfake video of real executives", "A fake 'audio fix' installs malware", "Crypto companies are the main target"],
-      "stat": {"value": "$2B+", "label": "crypto stolen by North Korea in 2025"},
+      "points": [
+        "Deepfake video of real executives",
+        "A fake 'audio fix' installs malware",
+        "Crypto companies are the main target"
+      ],
+      "stat": {
+        "value": "$2B+",
+        "label": "crypto stolen by North Korea in 2025"
+      },
       "bot": "My rule: if a call asks you to install anything, hang up and verify on another app!",
       "source": "Infosecurity Magazine"
     },
@@ -19,7 +26,10 @@
       "headline": "Anthropic takes its *IPO* plans on the road",
       "scene": "money",
       "voice": "The company behind Claude has started its IPO roadshow. That's when a company pitches itself to big investors before listing its shares on the stock market. It's a major step for one of the biggest names in AI, and a sign of how much money is flowing into the industry.",
-      "points": ["The roadshow comes before a listing", "Big investors get the pitch first"],
+      "points": [
+        "The roadshow comes before a listing",
+        "Big investors get the pitch first"
+      ],
       "source": "theneuron.ai"
     },
     {
@@ -27,16 +37,23 @@
       "headline": "NVIDIA's *GR00T 2* learns from human video",
       "scene": "robot",
       "voice": "NVIDIA's new robot model, GR00T 2, is testing a simple idea. Can robots learn new skills faster by watching videos of people doing tasks? If it works, teaching a robot could look more like showing it a video than programming every move.",
-      "points": ["Robots watch people doing tasks", "Goal: learn new skills faster"],
+      "points": [
+        "Robots watch people doing tasks",
+        "Goal: learn new skills faster"
+      ],
       "bot": "Note to self: watch more cooking videos.",
       "source": "theneuron.ai"
     },
     {
       "category": "AI tools",
       "headline": "ChatGPT Images 2.6 makes *animated GIFs*",
-      "scene": "phone",
+      "scene": "media",
       "voice": "ChatGPT's image tool just got an update. Version 2.6 can now create animated GIFs, not just still pictures. Reference images also stay saved, so your characters and styles stay consistent. Developers get two new image models in the API too.",
-      "points": ["Native animated GIF creation", "Reference images now persist", "Two new API models"],
+      "points": [
+        "Native animated GIF creation",
+        "Reference images now persist",
+        "Two new API models"
+      ],
       "source": "aiweekly.co"
     },
     {
@@ -44,19 +61,32 @@
       "headline": "AI data centres push US power use to *records*",
       "scene": "bolt",
       "voice": "The US energy agency expects electricity use to hit new record highs in 2026 and again in 2027. A big part of the reason is AI. Data centres that train and run AI models need huge amounts of power, and that demand keeps growing.",
-      "points": ["New records expected in 2026 and 2027", "AI data centres are a key driver"],
+      "points": [
+        "New records expected in 2026 and 2027",
+        "AI data centres are a key driver"
+      ],
       "source": "theneuron.ai"
     },
     {
       "category": "Privacy",
       "headline": "Meta pauses its *website-scraping* terms",
-      "scene": "globe",
+      "scene": "law",
       "voice": "Meta has paused new terms that would have let it scrape business users' websites. The move came after rulings in Norway and Brazil. For now the pause is indefinite, which is a small win for website owners worried about their content being used without asking.",
-      "points": ["Rulings in Norway and Brazil", "The pause is indefinite"],
+      "points": [
+        "Rulings in Norway and Brazil",
+        "The pause is indefinite"
+      ],
       "source": "aiweekly.co"
     }
   ],
   "question": "Which update *surprised* you most?",
   "outro_voice": "That's today's update. Which story surprised you most? Tell me in the comments, and subscribe for daily AI and tech updates.",
-  "tags": ["deepfake", "Anthropic IPO", "NVIDIA GR00T", "ChatGPT GIF", "AI data centers", "Meta privacy"]
+  "tags": [
+    "deepfake",
+    "Anthropic IPO",
+    "NVIDIA GR00T",
+    "ChatGPT GIF",
+    "AI data centers",
+    "Meta privacy"
+  ]
 }

@@ -25,12 +25,12 @@ episode.json:
  "outro_voice": "spoken outro (ask the question + subscribe)",
  "tags": ["tag", ...]
 }
-scenes: rocket robot shield phone bolt chip globe chat cloud car money
+scenes: rocket robot shield phone bolt chip globe chat cloud car money law media code space search glasses
 """
 import json, sys, re, html, math, pathlib, shutil, datetime
 import numpy as np, soundfile as sf
 import styreel as SR_
-from styreel import SCENES as BASE_SCENES, bot_svg, bot_js, ent, sfx_svg, sfx_js, pick_shape
+from styreel import bot_svg, bot_js, ent, sfx_svg, sfx_js
 from ftlogo import logo_svg, logo_inner
 
 BASE = pathlib.Path(__file__).resolve().parent
@@ -41,90 +41,10 @@ def T(x): return f"{x:.3f}"
 HOST = ("af_heart", 1.08)
 BOT = ("am_puck", 1.15)
 
-# ============================================================ extra scenes (same class vocabulary as styreel)
-def sc_chat(p, a, d, st):
-    bub = [(160, 130, 430, "f1"), (470, 250, 430, "f2"), (160, 370, 360, "f1")]
-    b = "".join(f'<g id="{p}-b{k}" class="pp"><rect class="{c} d" pathLength="1" x="{x}" y="{y}" width="{w}" height="96" rx="40"/>'
-                f'<line class="lnE d" pathLength="1" x1="{x+40}" y1="{y+38}" x2="{x+w-80}" y2="{y+38}"/>'
-                f'<line class="lnE d" pathLength="1" x1="{x+40}" y1="{y+62}" x2="{x+w-160}" y2="{y+62}"/></g>' for k, (x, y, w, c) in enumerate(bub))
-    dots = "".join(f'<circle id="{p}-td{k}" class="f4" cx="{520+k*44}" cy="526" r="13"/>' for k in range(3))
-    svg = (f'<g id="{p}-win" class="pp"><rect class="f3 d" pathLength="1" x="110" y="70" width="840" height="520" rx="36"/>'
-           f'<rect class="f2 d" pathLength="1" x="470" y="490" width="200" height="72" rx="36" opacity=".35"/></g>{b}{dots}'
-           + sfx_svg(p, 760, 110, "AI CHAT", st) + bot_svg(p, 940, 520, .6, st))
-    js = ent(st, [f"{p}-win", f"{p}-botb"], a + .1, .15)
-    for k in range(3):
-        js.append(f'tl.fromTo("#{p}-b{k}",{{opacity:0,scale:.4,transformOrigin:"{"0% 100%" if k != 1 else "100% 100%"}"}},{{opacity:1,scale:1,duration:.35,ease:"back.out(2.2)"}},{T(a+.6+k*.7)})')
-    for k in range(3):
-        js.append(f'tl.fromTo("#{p}-td{k}",{{y:0}},{{y:-16,duration:.25,repeat:{max(1,int(d/.5))},yoyo:true,ease:"sine.inOut"}},{T(a+.4+k*.1)})')
-    js += sfx_js(p, a + 1.2, st) + bot_js(p, a, d, a + 1.0, "wave")
-    return svg, js
-
-def sc_cloud(p, a, d, st):
-    racks = "".join(f'<g id="{p}-rk{k}" class="pp"><rect class="{("f1","f2","f1")[k]} d" pathLength="1" x="{250+k*200}" y="360" width="150" height="220" rx="16"/>'
-                    + "".join(f'<rect class="f3 d" pathLength="1" x="{268+k*200}" y="{382+j*62}" width="114" height="40" rx="8"/>'
-                              f'<circle id="{p}-led{k}{j}" class="f4" cx="{360+k*200}" cy="{402+j*62}" r="8"/>' for j in range(3)) + '</g>' for k in range(3))
-    cloud = (f'<g id="{p}-cl" class="pp"><path class="f3 d" pathLength="1" d="M330,250 C250,250 240,150 320,140 C330,70 450,50 490,110 '
-             f'C530,40 680,50 690,140 C780,130 800,250 710,250 Z"/></g>')
-    wires = "".join(f'<line id="{p}-w{k}" class="beam" x1="{325+k*200}" y1="255" x2="{325+k*200}" y2="360"/>' for k in range(3))
-    pk = "".join(f'<circle id="{p}-pk{k}" class="f4" cx="{325+k*200}" cy="350" r="11"/>' for k in range(3))
-    svg = cloud + wires + racks + pk + sfx_svg(p, 860, 140, "THE CLOUD", st) + bot_svg(p, 920, 540, .58, st)
-    js = ent(st, [f"{p}-cl", f"{p}-rk0", f"{p}-rk1", f"{p}-rk2", f"{p}-botb"], a + .1, .12)
-    for k in range(3):
-        js.append(f'tl.fromTo("#{p}-pk{k}",{{attr:{{cy:350}}}},{{attr:{{cy:262}},duration:.7,repeat:{max(1,int(d/.7))},ease:"none"}},{T(a+.8+k*.2)})')
-        js.append(f'tl.fromTo("#{p}-w{k}",{{strokeDashoffset:0}},{{strokeDashoffset:-120,duration:{T(d)},ease:"none"}},{T(a)})')
-        for j in range(3):
-            js.append(f'tl.fromTo("#{p}-led{k}{j}",{{opacity:1}},{{opacity:.2,duration:.18,repeat:{max(1,int(d/.5))},yoyo:true,repeatDelay:{.1+((k*3+j)%4)*.08:.2f}}},{T(a+.6+(k+j)*.07)})')
-    js += sfx_js(p, a + 1.0, st) + bot_js(p, a, d, a + 1.2, "cheer")
-    return svg, js
-
-def sc_car(p, a, d, st):
-    city = "".join(f'<rect class="{("f2","f1","f5","f2","f1")[k%5]} d" pathLength="1" x="{90+k*120}" y="{420-h}" width="96" height="{h}" rx="6"/>' for k, h in enumerate((150, 230, 120, 260, 180, 140, 210, 170)))
-    dash = "".join(f'<rect class="f3" x="{k*140}" y="548" width="80" height="10" rx="5"/>' for k in range(9))
-    waves = "".join(f'<path id="{p}-sw{k}" class="lnA" d="M{700+k*44},{380-k*30} Q{740+k*54},{440} {700+k*44},{500+k*30}" opacity="0"/>' for k in range(3))
-    car = (f'<g id="{p}-car" class="pp"><path class="f1 d" pathLength="1" d="M260,470 L300,400 Q330,360 400,360 L560,360 Q620,360 650,410 L700,430 Q730,440 730,470 L730,500 L260,500 Z"/>'
-           f'<path class="f3 d" pathLength="1" d="M330,410 L360,380 L470,380 L470,420 L330,420 Z"/><path class="f3 d" pathLength="1" d="M490,380 L560,380 Q590,382 610,420 L490,420 Z"/>'
-           + "".join(f'<g transform="translate({x} 505)"><g id="{p}-wh{k}"><circle class="f2 d" pathLength="1" r="42"/><circle class="f3" r="14"/>'
-                     f'<line class="lnT" x1="-30" y1="0" x2="30" y2="0"/><line class="lnT" x1="0" y1="-30" x2="0" y2="30"/></g></g>' for k, x in enumerate((360, 640))) + '</g>')
-    svg = (f'<g id="{p}-city" class="pp">{city}</g><line class="ln d" pathLength="1" x1="40" y1="520" x2="1040" y2="520"/>'
-           f'<g id="{p}-dash">{dash}</g>{waves}{car}' + sfx_svg(p, 300, 110, "SELF-DRIVING", st) + bot_svg(p, 940, 300, .55, st))
-    js = ent(st, [f"{p}-city", f"{p}-car", f"{p}-botb"], a + .1, .15)
-    js += [f'tl.fromTo("#{p}-dash",{{x:0}},{{x:-140,duration:.35,repeat:{max(1,int(d/.35))},ease:"none"}},{T(a)})',
-           f'tl.fromTo("#{p}-car",{{y:0}},{{y:-5,duration:.18,repeat:{max(1,int(d/.18))},yoyo:true,ease:"sine.inOut"}},{T(a+.6)})']
-    for k in range(2):
-        js.append(f'tl.fromTo("#{p}-wh{k}",{{rotation:0}},{{rotation:{int(360*d/0.5)},duration:{T(d)},ease:"none",transformOrigin:"50% 50%"}},{T(a)})')
-    for k in range(3):
-        js.append(f'tl.fromTo("#{p}-sw{k}",{{opacity:0}},{{opacity:1,duration:.25,repeat:{max(1,int(d/.9))},yoyo:true,repeatDelay:.4}},{T(a+1.0+k*.15)})')
-    js += sfx_js(p, a + 1.3, st) + bot_js(p, a, d, a + 1.3, "wave")
-    return svg, js
-
-def sc_money(p, a, d, st):
-    coins = "".join(f'<g id="{p}-c{k}"><ellipse class="f4 d" pathLength="1" cx="{260+(k%3)*12}" cy="{540-k*34}" rx="90" ry="26"/></g>' for k in range(6))
-    bills = "".join(f'<g id="{p}-bl{k}" class="pp"><rect class="f5 d" pathLength="1" x="-70" y="-38" width="140" height="76" rx="10"/>'
-                    f'<circle class="f3" r="20"/></g>' for k in range(3))
-    svg = (f'<line class="ln d" pathLength="1" x1="440" y1="560" x2="1000" y2="560"/><line class="ln d" pathLength="1" x1="440" y1="560" x2="440" y2="120"/>'
-           f'<polyline id="{p}-ln" class="lnA" pathLength="1" style="stroke-dasharray:1 1" points="470,500 560,460 640,480 720,360 800,390 900,200"/>'
-           f'<path id="{p}-ar" class="f4 d" pathLength="1" d="M900,170 L940,240 L860,240 Z"/>{coins}'
-           + f'<g id="{p}-bills">{bills}</g>'
-           + sfx_svg(p, 640, 90, "BIG MONEY", st) + bot_svg(p, 980, 520, .5, st))
-    js = ent(st, [f"{p}-c{k}" for k in range(6)], a + .1, .08)
-    js += [f'tl.fromTo("#{p}-ln",{{strokeDashoffset:1}},{{strokeDashoffset:0,duration:1.0,ease:"power2.inOut"}},{T(a+.6)})',
-           f'tl.fromTo("#{p}-ar",{{scale:0,transformOrigin:"50% 100%"}},{{scale:1,duration:.4,ease:"back.out(3)"}},{T(a+1.5)})']
-    for k in range(3):
-        js.append(f'tl.fromTo("#{p}-bl{k}",{{x:{200+k*40},y:-80,rotation:-30,opacity:1}},{{x:{560+k*140},y:{560-k*40},rotation:{40+k*50},duration:1.6,ease:"power1.in",repeat:{max(0,int(d/2.2)-1)},repeatDelay:.6}},{T(a+.9+k*.35)})')
-    js += sfx_js(p, a + 1.4, st)
-    return svg, js
-
-SCENES = dict(BASE_SCENES, chat=sc_chat, cloud=sc_cloud, car=sc_car, money=sc_money)
-SCENE_WORDS = [("chat", "chatbot|chatgpt|gemini|assistant|copilot|claude|llm|reply|conversation"),
-               ("car", "car|tesla|waymo|ev\\b|vehicle|driv|robotaxi"),
-               ("cloud", "cloud|server|aws|azure|data cent|storage"),
-               ("money", "fund|ipo|valuation|revenue|stock|invest|billion|price|deal|acqui")]
-def scene_for(s):
-    if s.get("scene") in SCENES: return s["scene"]
-    txt = (s.get("category", "") + " " + s.get("headline", "")).lower()
-    for k, pat in SCENE_WORDS:
-        if re.search(pat, txt): return k
-    return pick_shape({"category": s.get("category", ""), "headline": s.get("headline", "")})
+# ============================================================ illustrations (illus.py, v2 library)
+import illus
+SCENES = illus.SCENES
+def scene_for(s): return illus.pick(s)
 
 # ============================================================ the 7 shows
 F_SG = ("@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2", 700)
@@ -183,6 +103,9 @@ SHOWS = {
 FAM_ST = {"flat": "paper", "ink": "comic", "line": "blueprint"}
 
 def scene_css(S):
+    return _scene_css(S) + illus.css(S["family"], S.get("fills"), S["line"], S["acc"], bool(S.get("light")))
+
+def _scene_css(S):
     fam = S["family"]
     if fam == "line":
         L, A = S["line"], S["acc"]
@@ -765,7 +688,7 @@ def thumbnail(data, info, out_png):
 {scene_css(S)} {show_css(S)}
 .h1{{position:absolute;left:56px;top:150px;width:690px;font-size:{108 if len(plain(txt)) < 22 else 92}px;line-height:1.0;{'text-transform:uppercase;' if fam=='line' else ''}}}
 .h1 .w{{display:inline-block}}
-.ill{{position:absolute;right:-30px;top:120px;width:640px;height:380px}} .ill svg{{width:100%;height:100%;overflow:visible}}
+.ill{{position:absolute;right:-40px;top:96px;width:720px;height:427px}} .ill svg{{width:100%;height:100%;overflow:visible}}
 .brand{{position:absolute;left:52px;top:44px;display:flex;align-items:center;gap:14px;font-family:FTHead;font-weight:700;font-size:30px;color:{S['ink']}}}
 .chip{{position:absolute;left:56px;bottom:52px;font-family:FTHead;font-weight:700;font-size:30px;letter-spacing:4px;padding:10px 22px;border-radius:10px;background:{S['acc']};color:{'#fff' if light or fam=='ink' else '#0B1020'}}}
 .more{{position:absolute;right:50px;bottom:52px;font-family:FTHead;font-weight:700;font-size:34px;color:{S['ink']}}}

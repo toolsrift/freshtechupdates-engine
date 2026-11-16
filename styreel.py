@@ -122,6 +122,12 @@ STYLES = {
 """),
 }
 
+# v2 illustration classes for each Reel style
+import illus as _illus
+STYLES["paper"]["css"] += _illus.css("flat", ["#4FD1E8", "#8F6CF0", "#F3EBDD", "#B5E05A", "#FF8A65"], "#F3EBDD", "#B5E05A")
+STYLES["comic"]["css"] += _illus.css("ink", ["#29C5F6", "#FF4D6D", "#FFFFFF", "#FFD93D", "#FF8A3D"], "#111111", "#FF4D6D")
+STYLES["blueprint"]["css"] += _illus.css("line", None, "#EAF4FF", "#FFD84D")
+
 BASE_CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
@@ -379,8 +385,11 @@ def words_js(pid, n, t, st, gap=.08):
     return [f'tl.fromTo("#{pid}-{k}",{{opacity:0,x:-14}},{{opacity:1,x:0,duration:.12,ease:"none"}},{T(t+k*gap)})' for k in range(n)]
 
 def story_scene(i, ns, s, a, d, st):
-    p = f"s{i}"; shape = pick_shape(s)
-    svg, js = SCENES[shape](p, a, d, st)
+    import illus
+    p = f"s{i}"; shape = illus.pick(s)
+    svg, js = illus.SCENES[shape](p, a, d, st)
+    svg += bot_svg(p, 985, 548, .5, st)
+    js += ent(st, [f"{p}-botb"], a + .9) + bot_js(p, a, d, a + 1.6, "cheer" if i % 2 else "wave")
     hw, nw = words_html(s["headline"], f"{p}-h")
     panel = '<div class="panel"></div>' if st == "comic" else ""
     m = (f'<div class="inner" id="{p}-in">{panel}'
@@ -591,3 +600,4 @@ window.__timelines["main"] = tl;
 
 if __name__ == "__main__":
     build(json.loads(pathlib.Path(sys.argv[1]).read_text()), sys.argv[2], sys.argv[3])
+

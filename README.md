@@ -48,7 +48,11 @@ Music (generated in code) changes chord progression by date, so the same show ne
 ```
 
 5–8 stories, most important first. `stat` is optional: only a real number from the source.
-`scene`: rocket, robot, shield, phone, bolt, chip, globe, chat, cloud, car, money. See `example-episode.json`.
+`scene` (see `illus.py`, 17 animated illustrations with depth, a lit stage and characters; the same names work as `shape` in reel.json):
+rocket (launches, growth) · robot (robotics, agents) · shield (security, scams) · phone (phones, gadgets) · bolt (energy, data centres) ·
+chip (AI models, chips) · globe (global, India, policy) · chat (chatbots, assistants) · cloud (cloud, servers) · car (EVs, self-driving) ·
+money (funding, IPO, deals) · law (regulation, courts, bans) · media (image/video/music AI) · code (developer tools, web) ·
+space (satellites, telecom) · search (Google Search, SEO) · glasses (wearables, AR/VR). See `example-episode.json`.
 
 Weekday rotation (India time): Mon/Wed/Fri/Sun **comic**, Tue/Thu **paper**, Sat **blueprint**.
 
@@ -80,3 +84,4 @@ See `example-slides.json` and `example-reel.json`.
 - `hfreel.py` – earlier neon 3D Reel style (`neon`)
 - `longform.py` – daily YouTube episode engine (7 shows, thumbnail, YouTube metadata)
 - `ftlogo.py` – the 3D FT logo as inline SVG
+- `illus.py` – illustration library v2 (used by the episodes and the Reel)
