@@ -19,7 +19,7 @@ export const Compare: React.FC<CompareProps> = ({ title, left, right, accent = "
     return (
       <div key={i} style={{ flex: 1, position: "relative", borderRadius: 34 * u, background: "rgba(255,255,255,0.05)", border: `2px solid ${col}33`, padding: 36 * u,
         display: "flex", flexDirection: "column", gap: 14 * u, opacity: p, transform: `translate${vertical ? "Y" : "X"}(${(1 - p) * (i ? 80 : -80)}px)` }}>
-        <div style={{ position: "relative", height: (vertical ? 330 : 360) * u }}>
+        <div style={{ position: "relative", height: (vertical ? 330 : 250) * u }}>
           {s.bundle ? <IllusScene bundle={s.bundle} style={{ inset: 0 }} /> : (
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ width: 200 * u, height: 200 * u, borderRadius: 50 * u, background: `${col}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -38,7 +38,7 @@ export const Compare: React.FC<CompareProps> = ({ title, left, right, accent = "
   const tp = (title || "").split(/(\*[^*]+\*)/g).filter(Boolean);
   const vs = spring({ frame: frame - 26, fps, config: { damping: 9 } });
   return (
-    <AbsoluteFill style={{ fontFamily, padding: vertical ? `${200 * u}px ${60 * u}px ${300 * u}px` : `${130 * u}px ${120 * u}px ${110 * u}px`, gap: 30 * u }}>
+    <AbsoluteFill style={{ fontFamily, padding: vertical ? `${200 * u}px ${60 * u}px ${300 * u}px` : `${120 * u}px ${120 * u}px ${190 * u}px`, gap: 30 * u }}>
       {title ? <div style={{ fontSize: (vertical ? 66 : 60) * u, fontWeight: 700, color: ink, letterSpacing: "-0.02em" }}>
         {tp.map((t, i) => t.startsWith("*") ? <span key={i} style={{ color: accent }}>{t.slice(1, -1)}</span> : <span key={i}>{t}</span>)}</div> : null}
       <div style={{ flex: 1, display: "flex", flexDirection: vertical ? "column" : "row", gap: 40 * u, position: "relative" }}>
