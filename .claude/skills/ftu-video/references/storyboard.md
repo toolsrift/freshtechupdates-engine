@@ -23,23 +23,25 @@ Write one file per video in the engine root: `storyboard-short.json`, `storyboar
 
 **Daily Short (3 stories)**
 1. Hook — the most surprising concrete fact (Social → Hooks, or Typography → Kinetic posters). `captions: false`.
-2. Story 1 — show its key thing (a number → Numbers; a product doing something → Product scenes/UI blocks;
-   a claim → Typography statement).
-3. Story 2 — voice starts "Next."
-4. Story 3 — voice starts "And finally."
+2. Story 1 — a visual layout: `ftu-illus` / `ftu-icons` / `ftu-compare`, or a numbers component with a `visual`.
+3. Story 2 — voice starts "Next." Different layout from story 1.
+4. Story 3 — voice starts "And finally." Different layout again.
 5. End — Logo sting (`introducing`, `first-light`, end stings…) with "Full episode on YouTube at 6 PM" or
    "Follow for tomorrow's updates". `captions: false`.
 
 **Long episode (5–10 stories)**
 - Opener: one statement beat ("Today in AI and tech" or the top story as a headline) — no list of
   stories (Vedanth's rule).
-- Per story: a section card (`chapter` set) + 1–2 beats that show it + optional takeaway beat
-  (Typography quote/statement: why it matters). Vary the section-card component every few stories.
+- Per story: a section card (`chapter` set) + 1–2 visual beats that show it (e.g. `ftu-illus` with stat,
+  points and an FT Bot `tip`, then `ftu-compare` or `ftu-icons`) + optional takeaway (typography with a
+  `visual` in the background). Keep any single beat under ~12 s; split long voice lines into two beats.
+  Example: `studio/test/v3-long.json`.
 - Outro: question for comments + subscribe, logo sting.
 
 **Explainer (one topic)**
-1. Hook: why everyone is talking about it. 2. What it is. 3. Why now. 4. What it means for you.
-5. End: "Follow for daily explainers".
+1. Hook: why everyone is talking about it. 2. What it is (`ftu-illus`). 3. Why now (`ftu-icons` or a
+number with a visual). 4. What it means for you (`ftu-illus` with a different scene, or `ftu-compare`).
+5. End: "Follow for daily explainers". Example: `studio/test/v3-short.json` for the mix of layouts.
 
 ## Thumbnails and cover
 `thumb_beat` / `thumb_beat_b` (0-based beat index): pick beats whose settled frame is a number, chart,

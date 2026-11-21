@@ -1,0 +1,24 @@
+{
+  "format": "short", "captions": "caption-active-pop", "illusFamily": "flat",
+  "look": {"accent": "#22D3EE", "ink": "#F8FAFC", "background": "#0A0F1E", "font": "Manrope"},
+  "beats": [
+    {"component": "hook-punch", "captions": false,
+     "props": {"stop": "Anthropic", "scroll": "went public.", "lead": "Worth on day one", "payoff": "$1.3T", "scale": 0.8},
+     "voice": "Anthropic just finished its first day on the stock market, worth one point three trillion dollars."},
+    {"component": "compact-stat", "transition": "slide", "tag": "AI business", "source": "Reuters",
+     "visual": {"scene": "money", "place": "top"},
+     "props": {"value": 1300000000000, "decimals": 1, "prefix": "$", "label": "market value at the first close"},
+     "voice": "Shares opened thirty four percent above the IPO price, and closed seventeen percent up."},
+    {"component": "stripe-mask", "transition": "wipe", "tag": "Science", "source": "Hacker News", "captions": false,
+     "visual": {"scene": "search", "place": "bottom", "family": "line"},
+     "props": {"title": "AI-assisted proof. Experts are checking.", "scale": 1.0},
+     "voice": "Next. A mathematician claims a proof of the Generalized Riemann Hypothesis, with help from AI. Experts are still checking it."},
+    {"component": "ftu-illus", "transition": "fade", "tag": "Big tech", "source": "Bloomberg",
+     "props": {"scene": "robot", "kicker": "And finally", "headline": "Apple is building an *AI agent*",
+               "points": [{"icon": "code", "text": "Writes code"}, {"icon": "globe", "text": "Browses the web"}, {"icon": "app-window", "text": "Controls your apps"}]},
+     "voice": "And finally. A job listing shows Apple is building an AI agent that can write code, browse the web and control your apps."},
+    {"component": "introducing", "transition": "fade", "captions": false,
+     "props": {"eyebrow": "Daily AI & tech updates", "name": "freshtechupdates", "tagline": "Full episode on YouTube at 6 PM.", "scale": 0.52},
+     "voice": "Watch the full episode on YouTube at six PM."}
+  ]
+}

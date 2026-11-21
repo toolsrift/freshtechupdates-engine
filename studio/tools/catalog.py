@@ -19,6 +19,61 @@ SKIP_SECTIONS = {"templates", "compositions", "getting-started", "guides", "craf
 STOP = set("a an the of to in on for and or with is are be by at as it this that your you from into one two".split())
 
 
+SCENES = "rocket robot shield phone bolt chip globe chat cloud car money law media code space search glasses"
+FTU_ITEMS = [{
+    "name": "ftu-illus", "title": "FT illustration hero", "section": "illustration", "group": "freshtechupdates",
+    "description": "An animated 3D-sticker illustration scene (with the FT Bot mascot) beside a headline that rises word by word, "
+                   "optional big stat and up to 3 icon point chips. Our own component; colours follow the look of the day.",
+    "vibe": "playful", "length": "110",
+    "useWhen": ["A story beat that needs a rich visual: an illustration of the subject plus the key facts",
+                "Robots, agents, rockets, chips, phones, money, law, security, cloud, cars, space, search, media, code, glasses stories",
+                "The long episode's main beat per story (headline + 2-3 points with icons)"],
+    "avoidWhen": ["A single huge number is the whole beat - use a numbers component (optionally with a `visual`)",
+                  "A pure statement or quote - use a typography component"],
+    "askedAs": ["illustration", "robot", "icons", "visual", "mascot", "rocket", "points with icons", "rich visual"],
+    "props": [
+        {"name": "scene", "type": "string", "default": "", "desc": f"Illustration scene (required): {SCENES}"},
+        {"name": "headline", "type": "string", "default": "", "desc": "Headline, max 9 words; wrap the key word in *asterisks* for the accent"},
+        {"name": "kicker", "type": "string", "default": "", "desc": "Optional small line above the headline (e.g. 'Big tech')"},
+        {"name": "points", "type": "{icon, text}[]", "default": "[]", "desc": "Up to 3 points, max 6 words each; icon = any lucide icon name (cpu, shield-check, rocket, globe, dollar-sign, bot, code, smartphone, zap, search...)"},
+        {"name": "stat", "type": "{value, label}", "default": "", "desc": "Optional big number from the source, e.g. {value: '$1.3T', label: 'market value'}"},
+        {"name": "family", "type": "'flat'|'ink'|'line'", "default": "storyboard illusFamily or flat", "desc": "flat = 3D stickers, ink = comic outlines, line = blueprint drawing"},
+        {"name": "label", "type": "string", "default": "scene's own word", "desc": "Sticker word on the scene (e.g. search shows 'RANKED!'): set a word that fits the story, max 14 chars, or \"\" to hide it"},
+        {"name": "bot", "type": "boolean", "default": "true", "desc": "Show the FT Bot mascot in the scene"},
+        {"name": "pose", "type": "'cheer'|'wave'", "default": "cheer", "desc": "FT Bot pose"},
+        {"name": "layout", "type": "'auto'|'illus-left'|'illus-right'|'stack'", "default": "auto", "desc": "auto = stacked in a Short, illustration left in the episode"}],
+    "usage": '{"component": "ftu-illus", "props": {"scene": "robot", "kicker": "Big tech", "headline": "Apple is building an *AI agent*", '
+             '"points": [{"icon": "code", "text": "Writes code"}, {"icon": "globe", "text": "Browses the web"}, {"icon": "app-window", "text": "Controls your apps"}]}}\n'
+             'Any Remocn beat can also carry an illustration: "visual": {"scene": "money", "place": "top|bottom|left|right|corner|background", "family": "flat", "bot": false}',
+    "needsMedia": False, "webgl": False, "doc": "studio/src/ftu/IllusHero.tsx"},
+  {"name": "ftu-icons", "title": "FT icon grid", "section": "illustration", "group": "freshtechupdates",
+   "description": "A list told with icons: 2-6 tiles pop in one by one, each with an icon, a short label and an optional value; optional title, optional illustration and FT Bot tip.",
+   "vibe": "data", "length": "40 + 22 per item",
+   "useWhen": ["A story with several features, specs, numbers or steps (what's new in a release, what the agent can do, 3 key numbers)",
+               "Breaking a long beat into a visual list instead of a talking paragraph"],
+   "avoidWhen": ["One fact only - use ftu-illus or a numbers component", "Two things compared - use ftu-compare"],
+   "askedAs": ["icons", "list", "features", "grid", "specs", "what's new", "steps"],
+   "props": [
+     {"name": "title", "type": "string", "default": "", "desc": "Optional title, *accent* word"},
+     {"name": "items", "type": "{icon, label, value?}[]", "default": "", "desc": "2-6 items; icon = lucide icon name; label max 5 words; value optional (e.g. '2x', '$20')"},
+     {"name": "scene", "type": "string", "default": "", "desc": f"Optional illustration scene: {SCENES}"},
+     {"name": "tip", "type": "string", "default": "", "desc": "Optional FT Bot tip, max 16 words"}],
+   "usage": '{"component": "ftu-icons", "props": {"title": "What\'s *new* in Gemini 3", "items": [{"icon": "image", "label": "Makes images"}, {"icon": "video", "label": "Edits video"}, {"icon": "zap", "label": "2x faster", "value": "2x"}], "scene": "chip"}}',
+   "needsMedia": False, "webgl": False, "doc": "studio/src/ftu/IconGrid.tsx"},
+  {"name": "ftu-compare", "title": "FT comparison", "section": "illustration", "group": "freshtechupdates",
+   "description": "Two things side by side (stacked in a Short) with an illustration or icon each, a name, a big value and up to 3 facts, with a 'vs' badge.",
+   "vibe": "data", "length": "120",
+   "useWhen": ["Two products, models, prices, companies or before/after compared", "A rival launch or a price change (old vs new)"],
+   "avoidWhen": ["More than two things - use ftu-icons or a chart component"],
+   "askedAs": ["versus", "vs", "compare", "before after", "old vs new", "rival"],
+   "props": [
+     {"name": "title", "type": "string", "default": "", "desc": "Optional title, *accent* word"},
+     {"name": "left", "type": "{name, value?, icon?, scene?, facts?}", "default": "", "desc": "First side; scene = illustration (else icon); facts max 3 short lines"},
+     {"name": "right", "type": "{name, value?, icon?, scene?, facts?}", "default": "", "desc": "Second side (gets the accent colour)"}],
+   "usage": '{"component": "ftu-compare", "props": {"title": "Old price vs *new*", "left": {"name": "Before", "value": "$20", "icon": "tag"}, "right": {"name": "Now", "value": "$8", "icon": "badge-percent", "facts": ["From today", "All plans"]}}}',
+   "needsMedia": False, "webgl": False, "doc": "studio/src/ftu/Compare.tsx"}]
+
+
 def words(t):
     return [w for w in re.findall(r"[a-z0-9]+", (t or "").lower()) if w not in STOP and len(w) > 1]
 
@@ -77,6 +132,7 @@ def build(repo):
             "webgl": any("gsh" in x for x in art.get("registryDependencies") or []) or "@paper-design/shaders-react" in deps,
             "doc": str(rel),
         })
+    items += FTU_ITEMS
     CAT.parent.mkdir(exist_ok=True)
     CAT.write_text(json.dumps(items, ensure_ascii=False))
     print(f"CATALOG {len(items)} components -> {CAT}")

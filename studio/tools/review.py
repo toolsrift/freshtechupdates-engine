@@ -9,6 +9,20 @@ contrast, empty or flat frames, captions or chrome covering the beat's own text,
 more than one accent colour, ALL-CAPS blocks, lorem/placeholder copy, the Remocn logo/name showing.
 """
 import json, pathlib, subprocess, sys
+import numpy as np
+
+
+def emptiness(png):
+    """Share of the frame with nothing in it: 12x12-pixel blocks (on a 108-wide copy) that are flat."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(png), "-vf", "scale=108:-2,format=gray", "-f", "rawvideo", "-"],
+                         capture_output=True, check=True).stdout
+    w = 108; h = len(raw) // w
+    a = np.frombuffer(raw[:w * h], np.uint8).reshape(h, w).astype(np.float32)
+    bs = 6; flat = tot = 0
+    for y in range(0, h - bs + 1, bs):
+        for x in range(0, w - bs + 1, bs):
+            tot += 1; flat += a[y:y + bs, x:x + bs].std() < 4.0
+    return flat / max(1, tot)
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
 
@@ -23,8 +37,11 @@ def main():
     out = HERE / "out/review"; out.mkdir(parents=True, exist_ok=True)
     for f in out.glob("*.png"):
         f.unlink()
-    rows = []
+    rows, warns = [], []
+    n_beats = len(plan["beats"])
     for i, b in enumerate(plan["beats"]):
+        if 0 < i < n_beats - 1 and not b.get("chapter") and not b["component"].startswith("ftu-") and not b.get("visual"):
+            warns.append(f"NO_VISUAL beat {i + 1} {b['component']}: add a `visual` illustration or use an ftu-* layout (rule: every story beat shows something)")
         nat = cat.get(b["component"], {}).get("length", "")
         nat = int(nat) if str(nat).isdigit() else b["frames"] // 2
         nxt = plan["beats"][i + 1]["transitionFrames"] if i + 1 < len(plan["beats"]) else 0
@@ -37,6 +54,9 @@ def main():
             subprocess.run([str(HERE / "render.sh"), str(props), str(png), str(f)], check=True,
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             row.append(png)
+        e = emptiness(row[1])
+        if e > 0.80 and 0 < i < n_beats - 1 and not b.get("chapter"):
+            warns.append(f"EMPTY beat {i + 1} {b['component']}: settled frame is {e:.0%} empty (limit 80%) - add a visual, scale up, or change layout")
         rows.append((i, row))
     short = plan["format"] == "short"
     w = 300 if short else 520
@@ -56,6 +76,9 @@ def main():
         subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(filt), "-map", "[o]", str(sheet)], check=True)
         names = ", ".join(f"beat {i + 1} {plan['beats'][i]['component']}" for i, _ in chunk)
         print(f"REVIEW {sheet}  rows: {names}  (columns: entry, settled, end)")
+    for w in warns:
+        print(w)
+    print("REVIEW_RULES " + ("PASS" if not warns else f"{len(warns)} to fix"))
 
 
 if __name__ == "__main__":

@@ -13,6 +13,10 @@ humanizer rules of github.com/Jakeschincariol/instagram-agent-skill (MIT), for d
 - Tell a story per video: what happened → why it matters → what to watch. Not a list.
 - Tight runtime: cut words before cutting beats; the Short must not run past 60 s.
 
+- Every story beat shows something: an illustration, icons or a number with an illustration. Text-only
+  beats only for the hook, section cards and the end card.
+- Something moves every 2–3 s: points reveal, FT Bot reacts, the scene animates. Split beats over ~12 s.
+
 ## Never
 - A repeated look: the same opener, end card, caption style or transition pattern every day.
 - Glow halos or large saturated gradient washes added by you; gradient text; ALL-CAPS blocks; decorative
@@ -26,6 +30,8 @@ humanizer rules of github.com/Jakeschincariol/instagram-agent-skill (MIT), for d
 
 ## Review checklist (each sheet: rows = beats, columns = entry, settled, end)
 Blocking (fix before posting):
+- `review.py` printed `NO_VISUAL` or `EMPTY` for a beat.
+- An illustration's sticker word that doesn't fit the story (set `label`).
 - Text cut by the frame edge or a container in the settled/end column.
 - Text under ~28 px at 1080 wide, or low contrast against what's behind it.
 - A settled frame that is empty, flat colour, or red (= unknown component).

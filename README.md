@@ -20,6 +20,16 @@ Free, watermark-free renderer for the daily **@freshtechupdates** content:
 The episode render takes ~4 min per minute of video: run it in the background
 (`nohup ./make_episode.sh episode.json > out/episode.log 2>&1 &`) and wait for `EPISODE_DONE` in the log.
 
+## v3: illustrations + motion type (current)
+
+Every story beat shows something. On top of the v2 Remotion + Remocn renderer below, the studio plays the
+17 animated illustration scenes and the FT Bot mascot from `illus.py` (recoloured per look, flat / comic /
+blueprint) and adds our own layouts with icons (lucide):
+`ftu-illus` (illustration + headline + icon points + stat + FT Bot tip), `ftu-icons` (icon tiles),
+`ftu-compare` (A vs B), and a `"visual"` illustration on any Remocn beat. The long episode uses the v1
+weekday show (Newsroom … Paper Studio) as its look. `review.py` flags beats without a visual and frames
+more than 80% empty. Examples: `studio/test/v3-short.json`, `studio/test/v3-long.json`.
+
 ## v2 renderer (Remotion + Remocn): no fixed templates
 
 `studio/` is a Remotion project. Each video is a **storyboard**: a list of beats, and every beat names

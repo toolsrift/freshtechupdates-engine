@@ -1,0 +1,228 @@
+{
+ "format": "long",
+ "captions": "caption-karaoke",
+ "meta": {
+  "title": "Anthropic hits $1.3T, an AI math proof claim, Apple's agent | Daily AI & Tech",
+  "description": "Anthropic's first day on Nasdaq, a claimed AI-assisted proof of the Generalized Riemann Hypothesis, and a job listing that hints at Apple's AI agent.",
+  "tags": [
+   "AI news",
+   "Anthropic IPO",
+   "Riemann Hypothesis",
+   "Apple AI agent",
+   "tech news"
+  ],
+  "thumb_text": "Anthropic hits *$1.3T*",
+  "thumb_beat": 2,
+  "thumb_text_b": "Apple's *AI agent*",
+  "thumb_beat_b": 8,
+  "sources": [
+   "https://www.techmeme.com/",
+   "https://alpo.ge/remark.pdf",
+   "https://www.economist.com/science-and-technology/2026/11/20/ai-may-have-solved-the-most-important-problem-in-mathematics"
+  ]
+ },
+ "beats": [
+  {
+   "component": "point-intro",
+   "captions": false,
+   "props": {
+    "title": "Today in AI and tech",
+    "subline": "Three stories, explained."
+   },
+   "voice": "Here are today's biggest AI and tech updates."
+  },
+  {
+   "component": "slash-wipe",
+   "transition": "fade",
+   "captions": false,
+   "chapter": "Anthropic's Nasdaq debut",
+   "props": {
+    "sections": [
+     {
+      "title": "Anthropic goes public",
+      "sub": "Nasdaq debut"
+     }
+    ]
+   },
+   "voice": "First up. Anthropic, the company behind Claude, is now a public company."
+  },
+  {
+   "component": "ftu-illus",
+   "transition": "slide",
+   "tag": "AI business",
+   "source": "Reuters",
+   "props": {
+    "scene": "money",
+    "kicker": "AI business",
+    "headline": "Anthropic ends day one worth *$1.3T*",
+    "stat": {
+     "value": "$1.3T",
+     "label": "market value at the close"
+    },
+    "points": [
+     {
+      "icon": "bell-ring",
+      "text": "First trade 34% above IPO price"
+     },
+     {
+      "icon": "trending-up",
+      "text": "Closed 17% up, at $97.17"
+     }
+    ]
+   },
+   "voice": "On its first day of trading, Anthropic's shares opened thirty four percent above the IPO price and closed seventeen percent up. That puts its market value at about one point three trillion dollars."
+  },
+  {
+   "component": "ftu-compare",
+   "transition": "wipe",
+   "tag": "AI business",
+   "source": "Reuters",
+   "props": {
+    "title": "Open vs *close*",
+    "left": {
+     "name": "First trade",
+     "value": "+34%",
+     "icon": "bell-ring",
+     "facts": [
+      "Above the IPO price"
+     ]
+    },
+    "right": {
+     "name": "Close",
+     "value": "+17%",
+     "icon": "trending-up",
+     "facts": [
+      "$97.17 a share",
+      "About $1.3T in value",
+      "No shares for over half the bidding funds"
+     ]
+    }
+   },
+   "voice": "The stock gave back some of its first jump, but it still ended the day well above where it started. Demand was so high that more than half of the big funds that bid got no shares at all."
+  },
+  {
+   "component": "slash-wipe",
+   "transition": "fade",
+   "captions": false,
+   "chapter": "An AI-assisted math proof claim",
+   "props": {
+    "sections": [
+     {
+      "title": "A huge math claim",
+      "sub": "Generalized Riemann Hypothesis"
+     }
+    ]
+   },
+   "voice": "Next. A huge claim from the world of mathematics."
+  },
+  {
+   "component": "ftu-illus",
+   "transition": "slide",
+   "tag": "Science",
+   "source": "Hacker News",
+   "props": {
+    "scene": "search",
+    "label": "Claim?",
+    "layout": "illus-right",
+    "kicker": "Science",
+    "headline": "A claimed proof of the *Riemann Hypothesis*",
+    "points": [
+     {
+      "icon": "sigma",
+      "text": "One of math's biggest open problems"
+     },
+     {
+      "icon": "bot",
+      "text": "Reports say AI played a role"
+     },
+     {
+      "icon": "search-check",
+      "text": "Experts are still checking it"
+     }
+    ],
+    "tip": "A proof only counts once other mathematicians verify it."
+   },
+   "voice": "A mathematician claims a proof of the Generalized Riemann Hypothesis, one of the biggest open problems in mathematics. Reports say AI played a part in finding it. It was the most discussed story on Hacker News, but experts are still checking the work."
+  },
+  {
+   "component": "serif-rise",
+   "transition": "fade",
+   "tag": "Science",
+   "captions": false,
+   "visual": {
+    "scene": "space",
+    "place": "background",
+    "label": ""
+   },
+   "props": {
+    "lines": [
+     "Not proven yet.",
+     "But worth watching."
+    ],
+    "highlight": "But worth watching."
+   },
+   "voice": "So, not proven yet. But definitely one to watch."
+  },
+  {
+   "component": "slash-wipe",
+   "transition": "fade",
+   "captions": false,
+   "chapter": "Apple's AI agent",
+   "props": {
+    "sections": [
+     {
+      "title": "Apple's AI agent",
+      "sub": "Spotted in a job listing"
+     }
+    ]
+   },
+   "voice": "And finally. Apple might be building its own AI agent."
+  },
+  {
+   "component": "ftu-icons",
+   "transition": "slide",
+   "tag": "Big tech",
+   "source": "Bloomberg",
+   "props": {
+    "title": "What Apple's *agent* could do",
+    "scene": "robot",
+    "items": [
+     {
+      "icon": "code",
+      "label": "Write code"
+     },
+     {
+      "icon": "globe",
+      "label": "Browse the web"
+     },
+     {
+      "icon": "app-window",
+      "label": "Control apps"
+     },
+     {
+      "icon": "smartphone",
+      "label": "Navigate devices"
+     },
+     {
+      "icon": "git-branch",
+      "label": "Run sub-agents"
+     }
+    ],
+    "tip": "It's a job listing, so there's no launch date yet."
+   },
+   "voice": "According to Bloomberg, an Apple job listing describes an AI agent that can write code, browse the web, control apps, navigate devices, and coordinate smaller sub-agents for users."
+  },
+  {
+   "component": "introducing",
+   "transition": "fade",
+   "captions": false,
+   "props": {
+    "eyebrow": "Which update surprised you most?",
+    "name": "freshtechupdates",
+    "tagline": "Tell me in the comments, and subscribe for daily AI & tech updates.",
+    "scale": 0.8
+   },
+   "voice": "That's today's update. Which story surprised you most? Tell me in the comments, and subscribe for daily AI and tech updates."
+  }
+ ]
+}
