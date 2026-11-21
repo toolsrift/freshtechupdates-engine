@@ -1,0 +1,104 @@
+{
+ "format": "short",
+ "captions": "caption-karaoke",
+ "look": {
+  "accent": "#A3E635",
+  "ink": "#F3EBDD",
+  "background": "#0D0F0A",
+  "font": "Sora"
+ },
+ "beats": [
+  {
+   "component": "crash-zoom",
+   "captions": false,
+   "props": {
+    "tease": "Anthropic's first day on Nasdaq\u2026",
+    "reveal": "$1.3T",
+    "tagline": "market value at the close",
+    "scale": 0.62
+   },
+   "voice": "Anthropic's first day on the stock market ended with a value of one point three trillion dollars."
+  },
+  {
+   "component": "ftu-icons",
+   "transition": "slide",
+   "tag": "AI business",
+   "source": "Reuters",
+   "props": {
+    "title": "Day one, in *numbers*",
+    "scene": "money",
+    "items": [
+     {
+      "icon": "bell-ring",
+      "label": "First trade vs IPO price",
+      "value": "+34%"
+     },
+     {
+      "icon": "trending-up",
+      "label": "Gain at the close",
+      "value": "+17%"
+     },
+     {
+      "icon": "landmark",
+      "label": "Closing price per share",
+      "value": "$97.17"
+     }
+    ]
+   },
+   "voice": "The first trade came in thirty four percent above the IPO price. Shares closed seventeen percent up, at ninety seven dollars."
+  },
+  {
+   "component": "ftu-illus",
+   "transition": "wipe",
+   "tag": "Science",
+   "source": "Hacker News",
+   "props": {
+    "scene": "search",
+    "layout": "full",
+    "kicker": "Next",
+    "headline": "An AI-assisted proof of a *famous* math problem?",
+    "tip": "Big claim. Experts are still checking it.",
+    "label": "Claim?"
+   },
+   "voice": "Next. A mathematician claims a proof of the Generalized Riemann Hypothesis, with help from AI. Experts are still checking the work."
+  },
+  {
+   "component": "ftu-illus",
+   "transition": "fade",
+   "tag": "Big tech",
+   "source": "Bloomberg",
+   "props": {
+    "scene": "robot",
+    "kicker": "And finally",
+    "headline": "Apple is building an *AI agent*",
+    "points": [
+     {
+      "icon": "code",
+      "text": "Writes code"
+     },
+     {
+      "icon": "globe",
+      "text": "Browses the web"
+     },
+     {
+      "icon": "app-window",
+      "text": "Controls your apps"
+     }
+    ]
+   },
+   "voice": "And finally. A job listing shows Apple is building an AI agent that can write code, browse the web and control your apps."
+  },
+  {
+   "component": "introducing",
+   "transition": "fade",
+   "captions": false,
+   "props": {
+    "eyebrow": "Daily AI & tech updates",
+    "name": "freshtechupdates",
+    "tagline": "Full episode on YouTube at 6 PM.",
+    "scale": 0.52
+   },
+   "voice": "Watch the full episode on YouTube at six PM."
+  }
+ ]
+}

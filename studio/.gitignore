@@ -1,0 +1,9 @@
+node_modules/
+out/
+public/audio/
+public/fonts/
+src/components/
+src/lib/
+src/fontshim/
+src/generated/
+catalog/

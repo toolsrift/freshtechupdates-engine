@@ -3,6 +3,7 @@
 
   python3 thumbs.py long  episode.json  [show]   -> out/thumbnail.png (A), out/thumbnail-B.png, out/thumbnail-C.png  (1280x720)
   python3 thumbs.py short reel.json              -> out/short-cover.png (1080x1920) + out/short.txt (YouTube Shorts title/description)
+  python3 thumbs.py short trend.json trend       -> out/trend-cover.png + out/trend-short.txt (explainer lane)
 
 Three long-video designs for YouTube Studio > Thumbnail > Test & Compare:
   A  "Headline"  big 2-3 line hook + the story-1 illustration on a glowing stage
@@ -116,21 +117,43 @@ def long_thumbs(data, show_name="", outdir=BASE / "out"):
     render(page(c, 1280, 720), outdir / "thumbnail-C.png", 1280, 720)
 
 # ------------------------------------------------------------------ Short / Reel cover (1080x1920, key content inside the 3:4 centre)
-def short_cover(reel, outdir=BASE / "out"):
+def short_cover(reel, outdir=BASE / "out", prefix="short"):
+    """Cover + Shorts text. prefix "short" -> short-cover.png / short.txt (daily);
+    prefix "trend" -> trend-cover.png / trend-short.txt (explainer lane)."""
     outdir = pathlib.Path(outdir); outdir.mkdir(exist_ok=True)
+    explainer = reel.get("mode") == "explainer"
     hook = reel["hook"]["headline"]; s0 = reel["stories"][0]
     sz = fit(hook, [(14, 150), (22, 128), (32, 108), (99, 92)])
+    chip = reel["hook"].get("more") or ("Explained in 40 seconds" if explainer else "+2 more AI & tech updates")
+    chip_bg = "#22D3EE;color:#0B1230" if explainer else "#FF4D6D;color:#fff"
+    kicker = ('<div class="chip" style="left:50%;transform:translateX(-50%);top:1010px;font-size:30px;background:#A3E635;color:#0B1230;white-space:nowrap">TRENDING NOW</div>'
+              if explainer else "")
     body = (f'<div class="brand" style="left:0;right:0;top:300px;justify-content:center;font-size:44px">{logo_svg(110, uid="sc")}<span><b>fresh</b>techupdates</span></div>'
             '<div class="glow" style="left:140px;top:430px;width:800px;height:640px;background:rgba(34,211,238,.3)"></div>'
             f'<div style="position:absolute;left:-20px;top:430px">{scene_svg(s0, "sc0", 1120, 663)}</div>'
-            f'<div class="hk" style="position:absolute;left:60px;right:60px;top:1110px;text-align:center;font-size:{sz}px">{accent_html(hook)}</div>'
-            f'<div class="chip" style="left:50%;transform:translateX(-50%);top:1560px;font-size:34px;background:#FF4D6D;color:#fff;white-space:nowrap">{E(reel["hook"].get("more", "+2 more AI & tech updates").upper())}</div>')
-    render(page(body, 1080, 1920), outdir / "short-cover.png", 1080, 1920)
-    title = plain(hook)
-    title = (title + " | AI & Tech Updates")[:95]
-    desc = [plain(hook) + ".", ""] + [f"{i+1}. {plain(s['headline'])} ({s['source']})" for i, s in enumerate(reel["stories"])]
-    desc += ["", "Full episode with all of today's updates on our channel: @freshtechupdates", "", "#shorts #AI #TechNews #AIupdates #freshtechupdates"]
-    (outdir / "short.txt").write_text(f"TITLE:\n{title}\n\nDESCRIPTION:\n" + "\n".join(desc) + "\n")
+            f'{kicker}<div class="hk" style="position:absolute;left:60px;right:60px;top:1110px;text-align:center;font-size:{sz}px">{accent_html(hook)}</div>'
+            f'<div class="chip" style="left:50%;transform:translateX(-50%);top:1560px;font-size:34px;background:{chip_bg};white-space:nowrap">{E(chip.upper())}</div>')
+    render(page(body, 1080, 1920), outdir / f"{prefix}-cover.png", 1080, 1920)
+    if explainer:
+        topic = plain(reel.get("topic") or hook)
+        title = (reel.get("title") or f"{topic}: explained").strip()
+        title = plain(title)[:95]
+        desc = [plain(reel["hook"].get("voice", hook)).strip(), ""]
+        desc += [f"{plain(s.get('label') or str(i+1)).title()}: {plain(s['headline'])}" for i, s in enumerate(reel["stories"])]
+        srcs = reel.get("sources") or []
+        if srcs:
+            desc += ["", "Sources:"] + [f"- {x}" for x in srcs]
+        desc += ["", "A new AI & tech explainer every day, plus daily updates: @freshtechupdates", "",
+                 "#shorts #explained #AI #tech #freshtechupdates"]
+        name = f"{prefix}-short.txt"
+    else:
+        title = plain(hook)
+        title = (title + " | AI & Tech Updates")[:95]
+        desc = [plain(hook) + ".", ""] + [f"{i+1}. {plain(s['headline'])} ({s['source']})" for i, s in enumerate(reel["stories"])]
+        desc += ["", "Full episode with all of today's updates on our channel: @freshtechupdates", "", "#shorts #AI #TechNews #AIupdates #freshtechupdates"]
+        name = "short.txt" if prefix == "short" else f"{prefix}-short.txt"
+    (outdir / name).write_text(f"TITLE:\n{title}\n\nDESCRIPTION:\n" + "\n".join(desc) + "\n")
+    return outdir / f"{prefix}-cover.png", outdir / name
 
 if __name__ == "__main__":
     kind, src = sys.argv[1], json.loads(pathlib.Path(sys.argv[2]).read_text())
@@ -141,4 +164,5 @@ if __name__ == "__main__":
         long_thumbs(src, LF.SHOWS[show]["name"])
         print("thumbnails: out/thumbnail.png out/thumbnail-B.png out/thumbnail-C.png")
     else:
-        short_cover(src); print("cover: out/short-cover.png  text: out/short.txt")
+        prefix = sys.argv[3] if len(sys.argv) > 3 else "short"
+        c, t = short_cover(src, prefix=prefix); print(f"cover: out/{c.name}  text: out/{t.name}")

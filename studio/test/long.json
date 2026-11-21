@@ -1,0 +1,90 @@
+{
+ "format": "long",
+ "captions": "caption-karaoke",
+ "beats": [
+  {
+   "component": "point-intro",
+   "captions": false,
+   "props": {
+    "title": "Today in AI and tech",
+    "subline": "Three updates worth your next five minutes.",
+    "theme": "dark"
+   },
+   "voice": "Here are today's biggest AI and tech updates."
+  },
+  {
+   "component": "slash-wipe",
+   "transition": "fade",
+   "captions": false,
+   "chapter": "Anthropic's Nasdaq debut",
+   "props": {
+    "sections": [
+     {
+      "title": "Anthropic goes public",
+      "sub": "Nasdaq debut"
+     }
+    ]
+   },
+   "voice": "First up. Anthropic, the company behind Claude, is now a public company."
+  },
+  {
+   "component": "compact-stat",
+   "transition": "slide",
+   "tag": "AI business",
+   "source": "Reuters",
+   "props": {
+    "value": 1300000000000,
+    "decimals": 1,
+    "prefix": "$",
+    "label": "market value at the first close"
+   },
+   "voice": "Its shares closed seventeen percent up on day one, giving it a market value of about one point three trillion dollars."
+  },
+  {
+   "component": "slash-wipe",
+   "transition": "wipe",
+   "captions": false,
+   "chapter": "An AI-assisted math proof claim",
+   "props": {
+    "sections": [
+     {
+      "title": "A big math claim",
+      "sub": "Generalized Riemann Hypothesis"
+     }
+    ]
+   },
+   "voice": "Next. A huge claim from the world of mathematics."
+  },
+  {
+   "component": "serif-rise",
+   "transition": "fade",
+   "tag": "Science",
+   "source": "Hacker News",
+   "props": {
+    "lines": [
+     "A proof, found with AI.",
+     "Now being checked."
+    ],
+    "highlight": "Now being checked."
+   },
+   "voice": "A mathematician says he has proved the Generalized Riemann Hypothesis with help from AI. It's the most discussed story on Hacker News today, and experts are still checking the work."
+  }
+ ],
+ "meta": {
+  "title": "Anthropic goes public at $1.3T, an AI-assisted math proof claim | Daily AI & Tech",
+  "description": "Anthropic's first day on Nasdaq \u2014 and a mathematician's claim of an AI-assisted proof of the Generalized Riemann Hypothesis.",
+  "tags": [
+   "AI news",
+   "Anthropic IPO",
+   "Riemann Hypothesis"
+  ],
+  "thumb_text": "Anthropic is now *$1.3T*",
+  "thumb_beat": 2,
+  "thumb_text_b": "AI cracked *math*?",
+  "thumb_beat_b": 4,
+  "sources": [
+   "https://www.techmeme.com/",
+   "https://alpo.ge/remark.pdf"
+  ]
+ }
+}

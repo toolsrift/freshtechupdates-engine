@@ -7,3 +7,5 @@ __pycache__/
 .hyperframes/
 .ttscache/
 epproj/
+trendproj/
+package-lock.json

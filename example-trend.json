@@ -1,0 +1,24 @@
+{
+  "mode": "explainer",
+  "topic": "AI agents",
+  "title": "AI agents, explained in 40 seconds",
+  "hook": {
+    "headline": "Why everyone's talking about *AI agents*",
+    "more": "Explained in 40 seconds",
+    "voice": "Everyone is suddenly talking about AI agents. Here's what they are, in forty seconds."
+  },
+  "stories": [
+    {"label": "What it is", "category": "AI agents", "shape": "robot", "headline": "AI that *does* tasks, not just chats",
+     "source": "anthropic.com",
+     "voice": "A chatbot answers questions. An AI agent takes actions, like clicking, typing and using apps, to finish a task for you."},
+    {"label": "Why now", "category": "Big tech", "shape": "code", "headline": "Every big lab is *shipping* one",
+     "source": "openai.com",
+     "voice": "Next. Models got good enough at planning and using tools, so the big AI labs are now building agents into their products."},
+    {"label": "For you", "category": "Everyday use", "shape": "phone", "headline": "Your next assistant *books* it for you",
+     "source": "google.com",
+     "voice": "And finally. Soon you could ask an agent to compare prices or fill a form, and just check its work at the end."}
+  ],
+  "outro_question": "Would you trust an *agent* with that?",
+  "outro_voice": "Would you trust an AI agent to do your tasks? Tell me in the comments.",
+  "sources": ["https://www.anthropic.com/news", "https://openai.com/news", "https://blog.google/technology/ai/"]
+}

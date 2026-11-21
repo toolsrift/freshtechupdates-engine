@@ -8,9 +8,14 @@ The API key is NEVER stored here. In the cloud it is attached by the environment
   python3 zernio_post.py draft [episode] [short] [reel] # upload media + create DRAFT posts (default: all that exist)
   python3 zernio_post.py publish [--at "2026-11-17 18:00"] [episode|short|reel|<postId> ...]
   python3 zernio_post.py status                         # status of today's drafts / posts
+  python3 zernio_post.py draft trend-short trend-reel   # trending-explainer lane (made by make_trend.sh)
+  python3 zernio_post.py recent [days]                  # our posts of the last N days (default 10) -> out/recent.json
+  python3 zernio_post.py stats [days]                   # views per post (default 60 days) -> out/perf.json
+                                                        #   needs Zernio analytics; if it is off, writes available:false and exits 0
 
 Inputs (made by make_episode.sh / make_reel.sh): out/freshtechupdates-episode.mp4 + out/thumbnail.png + out/youtube.txt,
 out/freshtechupdates-reel.mp4 + out/short-cover.png + out/short.txt, and out/ig-caption.txt (Instagram caption).
+Trend lane (make_trend.sh): out/trend-reel.mp4 + out/trend-cover.png + out/trend-short.txt, and out/trend-ig-caption.txt.
 Draft ids are saved to out/zernio-drafts.json.
 Optional env: ZERNIO_YT_ACCOUNT, ZERNIO_IG_ACCOUNT (account ids; default = first connected account of that platform),
 ZERNIO_YT_VISIBILITY (public | unlisted | private, default public).
@@ -39,6 +44,114 @@ def call(method, path, body=None, raw=None, ctype="application/json", url=None):
         sys.exit(f"ZERNIO_ERROR {method} {url or path}: HTTP {e.code} {msg}")
     except urllib.error.URLError as e:
         sys.exit(f"ZERNIO_ERROR {method} {url or path}: {e.reason} (is zernio.com allowed in this environment?)")
+
+def try_call(method, path):
+    """Like call() but never exits: returns (http_status, json_or_text). Used by recent/stats."""
+    headers = {"Accept": "application/json", "User-Agent": "freshtechupdates-engine"}
+    key = os.environ.get("ZERNIO_API_KEY")
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    req = urllib.request.Request(API + path, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            txt = r.read().decode() or "{}"
+            return r.status, (json.loads(txt) if txt.strip().startswith(("{", "[")) else {"raw": txt})
+    except urllib.error.HTTPError as e:
+        txt = e.read().decode(errors="replace")[:800]
+        try:
+            return e.code, json.loads(txt)
+        except ValueError:
+            return e.code, {"error": txt}
+    except urllib.error.URLError as e:
+        return 0, {"error": str(e.reason)}
+
+def first_line(txt):
+    for line in (txt or "").splitlines():
+        if line.strip():
+            return line.strip()[:140]
+    return ""
+
+def lane_of(title, content=""):
+    t = f"{title or ''} {content or ''}".lower()
+    return "trend" if ("explained" in (title or "").lower() or "#explained" in t) else "daily"
+
+def recent(days=10):
+    since = (datetime.datetime.now(IST) - datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+    rows, page = [], 1
+    while page <= 5:
+        code, r = try_call("GET", f"/posts?fromDate={since}&limit=50&page={page}&view=summary")
+        if code != 200:
+            print(f"ZERNIO_WARN recent: HTTP {code} {str(r)[:200]} (continuing without post history)")
+            break
+        posts = r.get("posts", []) if isinstance(r, dict) else r
+        for x in posts:
+            plats = x.get("platforms") or []
+            title = x.get("title") or first_line(x.get("content"))
+            rows.append({"id": x.get("_id"), "title": title, "lane": lane_of(title, x.get("content")),
+                         "status": x.get("status"), "platforms": [y.get("platform") for y in plats],
+                         "when": x.get("scheduledFor") or x.get("createdAt")})
+        nxt = (r.get("pagination") or {}).get("nextCursor") if isinstance(r, dict) else None
+        if not posts or len(posts) < 50 or not nxt:
+            break
+        page += 1
+    OUT.mkdir(exist_ok=True)
+    (OUT / "recent.json").write_text(json.dumps({"days": days, "posts": rows}, indent=1, ensure_ascii=False))
+    for x in rows:
+        print(f'{x["lane"]:<6} {x["status"] or "":<10} {",".join(p or "" for p in x["platforms"]):<18} {x["title"]}')
+    print(f"RECENT {len(rows)} posts -> out/recent.json")
+
+def stats(days=60):
+    """Views per published post -> out/perf.json, with `rel` = views / median of the same platform + lane,
+    so YouTube and Instagram numbers can be compared (used by trends.py for learned pillar weights)."""
+    import statistics
+    sys.path.insert(0, str(BASE)); from trends import classify
+    since = (datetime.datetime.now(IST) - datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+    rows, page, reason = [], 1, None
+    while page <= 6:
+        code, r = try_call("GET", f"/analytics?source=late&fromDate={since}&limit=50&page={page}&view=summary")
+        if code != 200:
+            reason = ("Zernio analytics add-on is not enabled on this account" if code == 402
+                      else f"HTTP {code} {str(r)[:200]}")
+            break
+        posts = r.get("posts", []) if isinstance(r, dict) else []
+        now = datetime.datetime.now(datetime.timezone.utc)
+        for x in posts:
+            a = x.get("analytics") or {}
+            pub = x.get("publishedAt")
+            try:
+                age = (now - datetime.datetime.fromisoformat(pub.replace("Z", "+00:00"))).total_seconds() / 3600
+            except Exception:
+                age = 0
+            content = x.get("content") or ""
+            rows.append({"id": x.get("postId") or x.get("_id"), "platform": x.get("platform"),
+                         "title": first_line(content), "lane": lane_of(first_line(content), content),
+                         "pillar": classify(content), "views": a.get("views"), "likes": a.get("likes"),
+                         "comments": a.get("comments"), "published": pub, "age_h": round(age, 1),
+                         "url": x.get("platformPostUrl")})
+        if len(posts) < 50:
+            break
+        page += 1
+    if reason and not rows:
+        (OUT / "perf.json").write_text(json.dumps({"available": False, "reason": reason}, indent=1))
+        print(f"STATS_UNAVAILABLE {reason} (trend scoring will run without learned weights)")
+        return
+    groups = {}
+    for x in rows:
+        if x["views"] is not None:
+            groups.setdefault((x["platform"], x["lane"]), []).append(x["views"])
+    med = {k: (statistics.median(v) or 1) for k, v in groups.items()}
+    for x in rows:
+        if x["views"] is not None:
+            x["rel"] = round(x["views"] / med[(x["platform"], x["lane"])], 3)
+    summary = {f"{k[0]}/{k[1]}": {"posts": len(groups[k]), "median_views": med[k]} for k in sorted(groups, key=str)}
+    OUT.mkdir(exist_ok=True)
+    (OUT / "perf.json").write_text(json.dumps({"available": True, "days": days, "summary": summary, "posts": rows}, indent=1, ensure_ascii=False))
+    for k, v in summary.items():
+        print(f"{k:<20} posts={v['posts']:<4} median views={v['median_views']}")
+    top = sorted((x for x in rows if x.get("views") is not None), key=lambda x: -x["views"])[:5]
+    for x in top:
+        print(f'TOP {x["views"]:>7} {x["platform"]:<10} {x["lane"]:<6} {x["title"]}')
+    print(f"STATS {len(rows)} posts -> out/perf.json")
 
 def accounts():
     r = call("GET", "/accounts")
@@ -90,20 +203,24 @@ def make_draft(kind):
                 "platforms": [{"platform": "youtube", "accountId": account_for("youtube"),
                                "platformSpecificData": {"title": s["TITLE"][:100], "visibility": os.environ.get("ZERNIO_YT_VISIBILITY", "public"),
                                                         "categoryId": "28", "madeForKids": False}}]}
-    elif kind == "short":
-        mp4, txt = OUT / "freshtechupdates-reel.mp4", OUT / "short.txt"
+    elif kind in ("short", "trend-short"):
+        mp4, txt = ((OUT / "freshtechupdates-reel.mp4", OUT / "short.txt") if kind == "short"
+                    else (OUT / "trend-reel.mp4", OUT / "trend-short.txt"))
         if not mp4.exists(): return None
         s = sections(txt)
         body = {"content": s["DESCRIPTION"], "isDraft": True, "mediaItems": [{"type": "video", "url": upload(mp4)}],
                 "platforms": [{"platform": "youtube", "accountId": account_for("youtube"),
                                "platformSpecificData": {"title": s["TITLE"][:100], "visibility": os.environ.get("ZERNIO_YT_VISIBILITY", "public"),
                                                         "categoryId": "28", "madeForKids": False}}]}
-    else:  # reel
-        mp4, cap = OUT / "freshtechupdates-reel.mp4", OUT / "ig-caption.txt"
+    else:  # reel | trend-reel
+        trend = kind == "trend-reel"
+        mp4 = OUT / ("trend-reel.mp4" if trend else "freshtechupdates-reel.mp4")
+        cap = OUT / ("trend-ig-caption.txt" if trend else "ig-caption.txt")
+        cover = OUT / ("trend-cover.png" if trend else "short-cover.png")
         if not mp4.exists(): return None
-        if not cap.exists(): sys.exit("ZERNIO_ERROR out/ig-caption.txt missing (write the Instagram caption there first)")
+        if not cap.exists(): sys.exit(f"ZERNIO_ERROR out/{cap.name} missing (write the Instagram caption there first)")
         media = {"type": "video", "url": upload(mp4)}
-        if (OUT / "short-cover.png").exists(): media["instagramThumbnail"] = upload(OUT / "short-cover.png")
+        if cover.exists(): media["instagramThumbnail"] = upload(cover)
         body = {"content": cap.read_text().strip(), "isDraft": True, "mediaItems": [media],
                 "platforms": [{"platform": "instagram", "accountId": account_for("instagram")}]}
     r = call("POST", "/posts", body)
@@ -140,6 +257,10 @@ def main():
             else: body["publishNow"] = True
             call("PUT", f"/posts/{pid}", body)
             print(f"{'SCHEDULED ' + at.strftime('%d %b %H:%M IST') if at else 'PUBLISHING'} {pid}")
+    elif cmd == "recent":
+        recent(int(rest[0]) if rest else 10)
+    elif cmd == "stats":
+        stats(int(rest[0]) if rest else 60)
     elif cmd == "status":
         for d in load():
             r = call("GET", f'/posts/{d["id"]}'); p = r.get("post", r)
