@@ -14,10 +14,48 @@ Free, watermark-free renderer for the daily **@freshtechupdates** content:
 ./make_reel.sh reel.json comic      # force a style: comic | paper | blueprint | neon
 ./make_episode.sh episode.json      # -> out/freshtechupdates-episode.mp4 + 3 thumbnails (A/B/C) + out/youtube.txt
 ./make_episode.sh episode.json 4    # force a show (1-7)
+./make_trend.sh trend.json          # trending explainer Short -> out/trend-reel.mp4 (see "Trending explainer lane")
 ```
 
 The episode render takes ~4 min per minute of video: run it in the background
 (`nohup ./make_episode.sh episode.json > out/episode.log 2>&1 &`) and wait for `EPISODE_DONE` in the log.
+
+## Trending explainer lane (second daily Short)
+
+One hot AI & tech topic a day, explained in ~40 s in three beats (**What it is → Why now → For you**).
+Posted as a YouTube Short + Instagram Reel, separate from the daily updates.
+
+```bash
+python3 zernio_post.py recent           # our last 10 days of posts -> out/recent.json (so we don't repeat a topic)
+python3 zernio_post.py stats            # views per post -> out/perf.json (skipped cleanly if Zernio analytics is off)
+python3 trends.py score signals.json    # ranks today's topics -> out/trend-pick.json, prints TREND_PICK <topic>
+./make_trend.sh trend.json              # -> out/trend-reel.mp4 + out/trend-cover.png + out/trend-short.txt
+python3 zernio_post.py draft trend-short trend-reel   # needs out/trend-ig-caption.txt
+python3 zernio_post.py publish trend-short trend-reel
+```
+
+**signals.json** is written by the scheduled run from WebFetch results (Hacker News front page via the Algolia API,
+Techmeme, Hugging Face trending models, Google Trends IN/US RSS). Items about the same story share one `topic`.
+Format and scoring rules are at the top of `trends.py`: per-source normalisation, cross-source bonus, 18 h recency
+half-life, a penalty for topics we already covered, and learned pillar weights from our own view counts
+(only once 6+ explainer posts are 24 h+ old; clamped to 0.75–1.35x). Scoring ideas adapted from
+[darkzOGx/youtube-automation-agent](https://github.com/darkzOGx/youtube-automation-agent) (MIT).
+
+**trend.json** — same shape as reel.json plus `"mode": "explainer"`, a `label` per beat and the source URLs:
+
+```json
+{"mode":"explainer","topic":"short name","title":"YouTube title, max 70 chars, ends with 'explained'",
+ "hook":{"headline":"max 7 words, *accent*","more":"Explained in 40 seconds","voice":"1-2 spoken sentences"},
+ "stories":[{"label":"What it is","category":"1-2 words","shape":"<scene>","headline":"4-6 words, *accent*","source":"domain.com","voice":"16-24 words"},
+            {"label":"Why now", "...":"voice starts with 'Next.'"},
+            {"label":"For you", "...":"voice starts with 'And finally.'"}],
+ "outro_question":"max 6 words, *accent*","outro_voice":"question + Tell me in the comments.",
+ "sources":["https://..."]}
+```
+
+The style rotates one step ahead of the daily Short so both Shorts on the same day look different
+(trend: Mon/Wed/Fri paper · Tue/Thu/Sat comic · Sun blueprint). The end card says "Follow for daily explainers".
+See `example-trend.json`.
 
 ## Daily YouTube shows (rotate by weekday, India time)
 
@@ -91,4 +129,6 @@ See `example-slides.json` and `example-reel.json`.
 - `ftlogo.py` – the 3D FT logo as inline SVG
 - `illus.py` – illustration library v2 (used by the episodes and the Reel)
 - `thumbs.py` – YouTube thumbnails (3 designs for Test & Compare) and the Short/Reel cover
+- `trends.py` – trending-topic scorer for the explainer lane
+- `make_trend.sh` – renders the explainer Short (uses `styreel.py` in explainer mode)
 - `zernio_post.py` – uploads the episode, Short and Reel to Zernio as **drafts**, publishes only when approved (key comes from the environment's network secret, never from this repo)

@@ -31,6 +31,8 @@ def pick_shape(s):
         if re.search(pat, txt): return shp
     return "chip"
 
+MODE = "daily"   # "daily" (3 updates) or "explainer" (one trending topic in 3 beats); set by build()
+
 def T(x): return f"{x:.3f}"
 def E(s): return html.escape(str(s))
 
@@ -393,7 +395,7 @@ def story_scene(i, ns, s, a, d, st):
     hw, nw = words_html(s["headline"], f"{p}-h")
     panel = '<div class="panel"></div>' if st == "comic" else ""
     m = (f'<div class="inner" id="{p}-in">{panel}'
-         f'<div class="toprow" id="{p}-top"><span class="num">{ {"comic": f"#{i}", "paper": f"{i} of {ns}", "blueprint": f"FIG. {i:02d}"}[st] }</span><span class="tag">{E(s["category"])}</span>'
+         f'<div class="toprow" id="{p}-top"><span class="num">{E(s["label"]) if s.get("label") else {"comic": f"#{i}", "paper": f"{i} of {ns}", "blueprint": f"FIG. {i:02d}"}[st] }</span><span class="tag">{E(s["category"])}</span>'
          f'<span class="src" style="margin-left:auto">Source: {E(s["source"])}</span></div>'
          f'<div class="sc"><svg width="1080" height="600" viewBox="0 0 1080 640">{svg}</svg></div>'
          f'<div style="position:absolute;left:66px;right:66px;top:990px"><div class="h1" id="{p}-hb">{hw}</div></div></div>')
@@ -414,12 +416,16 @@ def exit_js(sel, end, st):
 
 def hook_scene(h, a, d, st):
     hw, nw = words_html(h["headline"], "hk")
-    kick = {"comic": "BREAKING!", "paper": "Today in AI", "blueprint": "SPEC // TODAY IN AI"}[st]
+    if MODE == "explainer":
+        kick = {"comic": "TRENDING!", "paper": "Trending now", "blueprint": "SPEC // TRENDING NOW"}[st]
+    else:
+        kick = {"comic": "BREAKING!", "paper": "Today in AI", "blueprint": "SPEC // TODAY IN AI"}[st]
+    more = h.get("more") or ("Explained in 40 seconds" if MODE == "explainer" else "+2 more AI & tech updates")
     size = {"comic": 128, "paper": 106, "blueprint": 80}[st]
     m = (f'<div class="inner" id="hk-in">'
          f'<div style="position:absolute;left:0;right:0;top:330px;text-align:center"><span class="tag" id="hk-k" style="font-size:{48 if st=="comic" else 32}px">{kick}</span></div>'
          f'<div style="position:absolute;left:66px;right:66px;top:440px;text-align:center"><div class="h1" id="hk-hb" style="font-size:{size}px">{hw}</div></div>'
-         f'<div id="hk-more" style="position:absolute;left:0;right:0;top:960px;text-align:center"><span class="badge">{E(h.get("more","+2 more AI & tech updates"))}</span></div>'
+         f'<div id="hk-more" style="position:absolute;left:0;right:0;top:960px;text-align:center"><span class="badge">{E(more)}</span></div>'
          f'<div class="sc" style="top:1060px;height:300px"><svg width="1080" height="300" viewBox="0 0 1080 300">{bot_svg("hk", 540, 170, .9, st)}</svg></div></div>')
     js = [f'tl.fromTo("#hk-k",{{scale:1.4,rotation:-12}},{{scale:1,rotation:-3,duration:.35,ease:"back.out(3)"}},{T(a)})']
     # frame 0 is the cover: headline fully visible from the first frame, then a punch-in
@@ -443,19 +449,27 @@ def outro_scene(q, a, d, st):
 
 
 def cta_scene(a, d):
-    """Brand end card (same on every style): points viewers to the full YouTube episode."""
+    """Brand end card (same on every style): daily mode points to the full YouTube episode,
+    explainer mode asks viewers to follow for more explainers."""
+    if MODE == "explainer":
+        kick, head, row = ("TRENDING TECH, EXPLAINED", 'Follow for <span style="color:#22D3EE">daily explainers</span>',
+                           "on YouTube &amp; Instagram")
+        sub = "New AI &amp; tech explainer every day"
+    else:
+        kick, head, row = ("WANT ALL OF TODAY\'S UPDATES?", 'Watch the <span style="color:#22D3EE">full episode</span>', "on YouTube")
+        sub = "Subscribe for daily AI &amp; tech updates"
     play = ('<svg width="150" height="106" viewBox="0 0 150 106"><rect width="150" height="106" rx="30" fill="#FF0033"/>'
             '<path d="M60,30 L102,53 L60,76 Z" fill="#fff"/></svg>')
     m = ('<div class="full" style="background:radial-gradient(circle at 50% 38%,#16224d,#05070F 72%)"></div>'
          '<div class="full" style="background:radial-gradient(circle,rgba(243,235,221,.18) 1.5px,transparent 2.5px) 0 0/60px 60px"></div>'
          f'<div id="ct-logo" style="position:absolute;left:0;right:0;top:330px;display:flex;justify-content:center">{chip_logo(330)}</div>'
-         '<div id="ct-k" style="position:absolute;left:0;right:0;top:760px;text-align:center;font-family:FTCta;font-weight:700;font-size:44px;letter-spacing:10px;color:#A3E635">WANT ALL OF TODAY\'S UPDATES?</div>'
-         '<div id="ct-h" style="position:absolute;left:60px;right:60px;top:840px;text-align:center;font-family:FTCta;font-weight:700;font-size:118px;line-height:1.02;color:#F8FAFC">Watch the <span style="color:#22D3EE">full episode</span></div>'
+         '<div id="ct-k" style="position:absolute;left:0;right:0;top:760px;text-align:center;font-family:FTCta;font-weight:700;font-size:44px;letter-spacing:10px;color:#A3E635">' + kick + '</div>'
+         '<div id="ct-h" style="position:absolute;left:60px;right:60px;top:840px;text-align:center;font-family:FTCta;font-weight:700;font-size:' + ("96" if MODE == "explainer" else "118") + 'px;line-height:1.02;color:#F8FAFC">' + head + '</div>'
          f'<div id="ct-yt" style="position:absolute;left:0;right:0;top:1130px;display:flex;justify-content:center;align-items:center;gap:26px">{play}'
-         '<span style="font-family:FTCta;font-weight:700;font-size:58px;color:#F3EBDD">on YouTube</span></div>'
+         '<span style="font-family:FTCta;font-weight:700;font-size:58px;color:#F3EBDD">' + row + '</span></div>'
          '<div id="ct-f" style="position:absolute;left:0;right:0;top:1330px;text-align:center;font-family:FTCta;font-weight:700;font-size:56px;color:#F8FAFC">'
          '<span style="color:#22D3EE">@</span>freshtechupdates</div>'
-         '<div id="ct-s" style="position:absolute;left:0;right:0;top:1430px;text-align:center;font-family:FTCta;font-weight:700;font-size:38px;color:#94A3B8">Subscribe for daily AI &amp; tech updates</div>')
+         '<div id="ct-s" style="position:absolute;left:0;right:0;top:1430px;text-align:center;font-family:FTCta;font-weight:700;font-size:38px;color:#94A3B8">' + sub + '</div>')
     js = [f'tl.to("#top",{{opacity:0,duration:.2}},{T(a)})', f'tl.fromTo("#ct-logo",{{scale:0,rotation:-25,opacity:0}},{{scale:1,rotation:0,opacity:1,duration:.55,ease:"back.out(1.8)"}},{T(a+.05)})',
           f'tl.fromTo("#ct-k",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.35}},{T(a+.35)})',
           f'tl.fromTo("#ct-h",{{opacity:0,scale:1.3}},{{opacity:1,scale:1,duration:.4,ease:"expo.out"}},{T(a+.55)})',
@@ -518,6 +532,8 @@ def background(st):
 
 def build(data, proj, st):
     from kokoro_onnx import Kokoro
+    global MODE
+    MODE = "explainer" if data.get("mode") == "explainer" else "daily"
     S = STYLES[st]
     k = Kokoro(str(BASE / "kokoro-v1.0.onnx"), str(BASE / "voices-v1.0.bin"))
     proj = pathlib.Path(proj); (proj / "assets/fonts").mkdir(parents=True, exist_ok=True); (proj / "assets/lib").mkdir(parents=True, exist_ok=True)
@@ -532,7 +548,9 @@ def build(data, proj, st):
     stories = data["stories"][:3]; ns = len(stories)
     plan = [("hook", data["hook"], data["hook"]["voice"])] + [("story", s, s["voice"]) for s in stories]
     plan.append(("outro", None, data.get("outro_voice", "Which one surprised you most? Tell me in the comments.")))
-    plan.append(("cta", None, data.get("cta_voice", "Want all of today's updates? Watch the full episode on YouTube, at freshtechupdates.")))
+    cta_default = ("Follow freshtechupdates for a new AI and tech explainer every day." if MODE == "explainer"
+                   else "Want all of today's updates? Watch the full episode on YouTube, at freshtechupdates.")
+    plan.append(("cta", None, data.get("cta_voice", cta_default)))
     audio, t, scenes = [], 0.0, []
     for kind, s, v in plan:
         aud, ws = narrate(k, v)
