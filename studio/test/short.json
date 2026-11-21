@@ -1,0 +1,72 @@
+{
+ "format": "short",
+ "captions": "caption-active-pop",
+ "beats": [
+  {
+   "component": "hook-punch",
+   "captions": false,
+   "props": {
+    "stop": "Anthropic",
+    "scroll": "went public.",
+    "lead": "Worth on day one",
+    "payoff": "$1.3T",
+    "scale": 0.8
+   },
+   "voice": "Anthropic just finished its first day on the stock market, worth one point three trillion dollars."
+  },
+  {
+   "component": "outline-fill-track-text",
+   "transition": "slide",
+   "tag": "AI business",
+   "source": "Reuters",
+   "props": {
+    "leadText": "Opened",
+    "valueText": "+34%",
+    "fontSize": 300
+   },
+   "voice": "Shares opened thirty four percent above the IPO price, then closed seventeen percent up."
+  },
+  {
+   "component": "stripe-mask",
+   "transition": "wipe",
+   "tag": "Science",
+   "source": "Hacker News",
+   "captions": false,
+   "props": {
+    "title": "AI-assisted proof. Experts are checking.",
+    "scale": 1.05
+   },
+   "voice": "Next. A mathematician claims a proof of the Generalized Riemann Hypothesis, with help from AI. Experts are still checking it."
+  },
+  {
+   "component": "width-lock",
+   "transition": "fade",
+   "tag": "Big tech",
+   "source": "Bloomberg",
+   "props": {
+    "before": "Apple's agent may",
+    "words": [
+     "write code",
+     "browse the web",
+     "control apps"
+    ],
+    "after": "for you.",
+    "hold": 26,
+    "scale": 0.62
+   },
+   "voice": "And finally. A job listing shows Apple is building an AI agent that can write code, browse the web and control your apps."
+  },
+  {
+   "component": "introducing",
+   "transition": "fade",
+   "captions": false,
+   "props": {
+    "eyebrow": "Daily AI & tech updates",
+    "name": "freshtechupdates",
+    "tagline": "Follow for tomorrow's updates.",
+    "scale": 0.52
+   },
+   "voice": "Follow fresh tech updates for tomorrow's AI and tech updates."
+  }
+ ]
+}

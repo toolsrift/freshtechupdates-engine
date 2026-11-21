@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Pick today's trending AI & tech topic for the explainer Short.
 
-  python3 trends.py score signals.json [--recent out/recent.json] [--perf out/perf.json] [--top 8]
+  python3 trends.py score signals.json [--lane trend|daily] [--recent out/recent.json] [--perf out/perf.json] [--top 8]
       -> prints a ranked table and writes out/trend-pick.json (ranked topics with their evidence)
+         --lane daily also prints SHORT_PICKS (top 3) and LONG_PICKS (5-10 stories, by strength) for the daily videos
   python3 trends.py classify "any headline text"     -> prints the content pillar
 
 signals.json is written by the scheduled run from WebFetch / WebSearch results (the shell has no open
@@ -15,6 +16,8 @@ is about the same thing):
              {"topic": "...", "source": "techmeme", "title": "...", "url": "...", "links": 34, "rank": 1},
              {"topic": "...", "source": "hf", "title": "Qwen/Qwen3.8-27B", "url": "...", "trending": 235, "likes": 20788},
              {"topic": "...", "source": "gtrends", "geo": "IN", "title": "...", "traffic": "5000+"},
+             {"topic": "...", "source": "news", "title": "...", "url": "...", "outlets": 4, "official": true,
+              "published": "2026-11-20T18:00:00Z"},
              {"topic": "...", "source": "search", "title": "...", "url": "..."}]}
 
 Scoring (ideas ported from darkzOGx/youtube-automation-agent: content-strategy-agent's merged trend score
@@ -36,7 +39,7 @@ import json, math, re, sys, pathlib, datetime, statistics
 BASE = pathlib.Path(__file__).resolve().parent
 OUT = BASE / "out"
 
-SOURCE_WEIGHT = {"techmeme": 1.0, "hn": 1.0, "hf": 0.6, "gtrends": 0.8, "search": 0.5, "producthunt": 0.6}
+SOURCE_WEIGHT = {"techmeme": 1.0, "hn": 1.0, "hf": 0.6, "gtrends": 0.8, "news": 1.0, "search": 0.5, "producthunt": 0.6}
 HALF_LIFE_H = 18.0
 
 # Content pillars: one place to keep "what kind of story is this" for scoring and learning.
@@ -109,6 +112,9 @@ def raw_strength(it):
         return float(it.get("trending") or 0) + 0.01 * float(it.get("likes") or 0)
     if src == "gtrends":
         return traffic_num(it.get("traffic"))
+    if src == "news":
+        # a news story found by WebSearch: how many different outlets reported it (and a bonus for an official source)
+        return float(it.get("outlets") or 1) + (2.0 if it.get("official") else 0.0)
     if src == "producthunt":
         return float(it.get("votes") or 0)
     return 1.0  # search hits: presence only
@@ -167,7 +173,7 @@ def pillar_weights(perf_path):
     return out, f"{len(rows)} measured explainer posts"
 
 
-def score(signals, recent=None, perf=None, top=8):
+def score(signals, recent=None, perf=None, top=8, lane="trend"):
     items = [dict(x) for x in signals.get("items", []) if x.get("topic")]
     if not items:
         sys.exit("TRENDS_ERROR signals.json has no items with a topic")
@@ -198,7 +204,10 @@ def score(signals, recent=None, perf=None, top=8):
         marks = {i.get("covered") for i in t["items"]}
         seen_trend = "explainer" in marks or any(lane == "trend" and overlap(t["topic"], x) >= 0.6 for x, lane in posted)
         seen_daily = "daily" in marks or any(lane == "daily" and overlap(t["topic"], x) >= 0.6 for x, lane in posted)
-        novelty = 0.15 if seen_trend else (0.6 if seen_daily else 1.0)
+        if lane == "daily":   # the daily updates must not repeat yesterday's updates; an explainer topic is fine to update
+            novelty = 0.3 if seen_daily else (0.85 if seen_trend else 1.0)
+        else:
+            novelty = 0.15 if seen_trend else (0.6 if seen_daily else 1.0)
         learned = weights.get(pillar, 1.0)
         final = t["base"] * cross * recency * novelty * learned
         ranked.append({
@@ -211,14 +220,27 @@ def score(signals, recent=None, perf=None, top=8):
                          for i in sorted(t["items"], key=lambda i: -i["_strength"])][:6],
         })
     ranked.sort(key=lambda r: -r["score"])
-    result = {"generated_at": now.isoformat(), "learning": learn_note, "pillar_weights": weights, "ranked": ranked[:top]}
+    result = {"generated_at": now.isoformat(), "lane": lane, "learning": learn_note, "pillar_weights": weights, "ranked": ranked[:top]}
+    if lane == "daily":
+        # Short = the 3 strongest; long episode = every story at >= 25% of the top score (5..10), so its length follows the news
+        good = [r for r in ranked if not r["already_posted"] or r["already_posted"] == "explainer"]
+        result["short_picks"] = [r["topic"] for r in good[:3]]
+        cut = (good[0]["score"] * 0.25) if good else 0
+        longp = [r for r in good if r["score"] >= cut][:10]
+        if len(longp) < 5:
+            longp = good[:5]
+        result["long_picks"] = [r["topic"] for r in longp]
     OUT.mkdir(exist_ok=True)
     (OUT / "trend-pick.json").write_text(json.dumps(result, indent=1, ensure_ascii=False))
     print(f"learning: {learn_note}")
     for k, r in enumerate(ranked[:top], 1):
         flag = f"  (already covered: {r['already_posted']})" if r["already_posted"] else ""
         print(f"{k:>2}. {r['score']:6.3f}  {r['pillar']:<10} {'+'.join(r['sources']):<22} {r['age_h']:>5.1f}h  {r['topic']}{flag}")
-    print("TREND_PICK " + (ranked[0]["topic"] if ranked else ""))
+    if lane == "daily":
+        print("SHORT_PICKS " + " | ".join(result["short_picks"]))
+        print("LONG_PICKS " + " | ".join(result["long_picks"]) + f"   ({len(result['long_picks'])} stories)")
+    else:
+        print("TREND_PICK " + (ranked[0]["topic"] if ranked else ""))
     return result
 
 
@@ -231,12 +253,13 @@ def main():
         return
     if a[0] != "score" or len(a) < 2:
         sys.exit(__doc__)
-    opts = {"--recent": str(OUT / "recent.json"), "--perf": str(OUT / "perf.json"), "--top": "8"}
+    opts = {"--recent": str(OUT / "recent.json"), "--perf": str(OUT / "perf.json"), "--top": "8", "--lane": "trend"}
     rest = a[2:]
     for i in range(0, len(rest) - 1, 2):
         if rest[i] in opts:
             opts[rest[i]] = rest[i + 1]
-    score(json.loads(pathlib.Path(a[1]).read_text()), opts["--recent"], opts["--perf"], int(opts["--top"]))
+    top = max(int(opts["--top"]), 14 if opts["--lane"] == "daily" else 0)
+    score(json.loads(pathlib.Path(a[1]).read_text()), opts["--recent"], opts["--perf"], top, opts["--lane"])
 
 
 if __name__ == "__main__":

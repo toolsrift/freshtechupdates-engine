@@ -8,3 +8,4 @@ __pycache__/
 .ttscache/
 epproj/
 trendproj/
+package-lock.json

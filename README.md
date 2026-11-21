@@ -20,6 +20,37 @@ Free, watermark-free renderer for the daily **@freshtechupdates** content:
 The episode render takes ~4 min per minute of video: run it in the background
 (`nohup ./make_episode.sh episode.json > out/episode.log 2>&1 &`) and wait for `EPISODE_DONE` in the log.
 
+## v2 renderer (Remotion + Remocn): no fixed templates
+
+`studio/` is a Remotion project. Each video is a **storyboard**: a list of beats, and every beat names
+its own component from [Remocn](https://github.com/Remocn/remocn) (MIT, ~800 usable components: kinetic
+type, number reveals, charts, product scenes, logo stings, voice captions, transitions). The director
+(the scheduled run, following `.claude/skills/ftu-video/SKILL.md`) picks components per story, so videos
+don't repeat a look. Voice is still the free offline Kokoro model; everything renders offline.
+
+```bash
+./setup.sh && ./setup-v2.sh                                   # once per machine; prints REMOCN_DIR
+python3 studio/tools/catalog.py search "big number funding"   # find components (offline docs)
+python3 studio/tools/catalog.py show compact-stat             # props + usage example
+cd studio
+python3 tools/build.py ../storyboard-short.json --repo $REMOCN_DIR   # install components, voice, timing, audio mix
+python3 tools/review.py out/props.json                        # contact sheets to check every beat
+./render.sh out/props.json out/short.mp4                      # ~6 min per minute of video on 2 cores
+python3 tools/finish.py ../storyboard-short.json out/props.json out/short.mp4 --kind daily-short
+cd .. && python3 zernio_post.py draft short reel               # unchanged posting
+```
+
+- `studio/tools/remocn_add.py` — offline `shadcn add` from a Remocn clone; replaces Google Fonts with local @fontsource copies
+- `studio/tools/catalog.py` — searchable catalog built from Remocn's docs (use/avoid notes, props, examples)
+- `studio/tools/build.py` — storyboard → props, Kokoro voice per beat, captions, soft generated music bed; Short capped at 60 s
+- `studio/tools/review.py` — entry/settled/end stills of every beat on contact sheets (after Remocn's scene-reviewer)
+- `studio/tools/finish.py` — thumbnails/cover from the video's own frames + post texts for `zernio_post.py`
+- `tools/ig/` — hook scorer and humanizer from [instagram-agent-skill](https://github.com/Jakeschincariol/instagram-agent-skill) (MIT)
+- `trends.py --lane daily` — one ranked research list: Short = top 3, long episode = 5–10 stories (length follows the news)
+
+Remotion is free for individuals and companies of up to 3 people; check remotion.dev/license if that changes.
+The v1 HyperFrames scripts below stay as a fallback.
+
 ## Trending explainer lane (second daily Short)
 
 One hot AI & tech topic a day, explained in ~40 s in three beats (**What it is → Why now → For you**).

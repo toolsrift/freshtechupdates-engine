@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Offline `shadcn add @remocn/<name>`: copy Remocn components (MIT, github.com/Remocn/remocn) from a local
+clone into this Remotion project, with their registry dependencies, then make Google-Fonts imports work
+without internet (the cloud machines can't reach fonts.gstatic.com).
+
+  python3 tools/remocn_add.py --repo ../remocn counter-reveal hook-punch ...
+  python3 tools/remocn_add.py --repo ../remocn --fonts-only        # just (re)build the font shim
+
+What it does
+  1. registry-artifacts/<name>.json -> src/<target> for the component and every registryDependency.
+  2. npm-installs any extra npm dependency the components declare (once).
+  3. For every `@remotion/google-fonts/<Family>` import in src/, installs @fontsource/<family> from npm,
+     copies its latin woff2 files to public/fonts/<family>/ and writes src/fontshim/<Family>.ts, which
+     loads those local files. tsconfig + remotion.config.ts point `@remotion/google-fonts/*` at src/fontshim.
+"""
+import argparse, json, pathlib, re, subprocess, sys
+
+HERE = pathlib.Path(__file__).resolve().parent.parent  # studio/
+SRC, PUB = HERE / "src", HERE / "public"
+PREINSTALLED = {"remotion", "react", "react-dom", "zod", "culori", "lucide-react", "@remotion/google-fonts",
+                "@remotion/transitions", "@remotion/captions", "@remotion/paths", "@remotion/fonts", "@remotion/zod-types"}
+# npm package name for a Google Fonts family when plain kebab-case is wrong
+FONT_PKG = {"JetBrainsMono": "jetbrains-mono", "IBMPlexMono": "ibm-plex-mono", "IBMPlexSans": "ibm-plex-sans",
+            "IBMPlexSerif": "ibm-plex-serif", "DMSans": "dm-sans", "DMSerifDisplay": "dm-serif-display",
+            "DMMono": "dm-mono", "PTSerif": "pt-serif", "PTSans": "pt-sans"}
+
+
+def kebab(name):
+    return FONT_PKG.get(name) or re.sub(r"(?<!^)(?=[A-Z])", "-", name).lower()
+
+
+def install(repo, names):
+    art = repo / "registry-artifacts"
+    done, npm = set(), set()
+    todo = [n.removeprefix("@remocn/") for n in names]
+    while todo:
+        n = todo.pop()
+        if n in done:
+            continue
+        f = art / f"{n}.json"
+        if not f.exists():
+            sys.exit(f"REMOCN_ERROR no component named '{n}' in {art}")
+        d = json.loads(f.read_text())
+        for fl in d.get("files", []):
+            tgt = SRC / (fl.get("target") or fl["path"])
+            tgt.parent.mkdir(parents=True, exist_ok=True)
+            tgt.write_text(fl["content"])
+        npm.update(x for x in d.get("dependencies") or [] if x not in PREINSTALLED)
+        todo += [x.removeprefix("@remocn/") for x in d.get("registryDependencies") or []]
+        done.add(n)
+    if npm:
+        have = json.loads((HERE / "package.json").read_text()).get("dependencies", {})
+        need = sorted(x for x in npm if x.split("@")[0] not in have and not (HERE / "node_modules" / x).exists())
+        if need:
+            subprocess.run(["npm", "install", "--no-audit", "--no-fund", "--loglevel=error", "--save", *need], cwd=HERE, check=True)
+    print(f"REMOCN_INSTALLED {len(done)}: {' '.join(sorted(done))}")
+    return done
+
+
+def fonts():
+    fams = set()
+    for p in SRC.rglob("*.ts*"):
+        if "fontshim" in p.parts:
+            continue
+        fams.update(re.findall(r"@remotion/google-fonts/(\w+)", p.read_text(errors="ignore")))
+    shim = SRC / "fontshim"
+    shim.mkdir(exist_ok=True)
+    missing = [f for f in sorted(fams) if not (HERE / "node_modules/@fontsource" / kebab(f)).exists()]
+    if missing:
+        r = subprocess.run(["npm", "install", "--no-audit", "--no-fund", "--loglevel=error", "--save",
+                            *[f"@fontsource/{kebab(f)}" for f in missing]], cwd=HERE)
+        if r.returncode:  # install one by one so one unknown family doesn't block the rest
+            for f in missing:
+                subprocess.run(["npm", "install", "--no-audit", "--no-fund", "--loglevel=error", "--save",
+                                f"@fontsource/{kebab(f)}"], cwd=HERE)
+    for fam in sorted(fams):
+        pkg = HERE / "node_modules/@fontsource" / kebab(fam) / "files"
+        files = {}
+        if pkg.exists():
+            dst = PUB / "fonts" / kebab(fam)
+            dst.mkdir(parents=True, exist_ok=True)
+            for w in pkg.glob(f"{kebab(fam)}-latin-*.woff2"):
+                m = re.match(rf"{re.escape(kebab(fam))}-latin-(\d+)-(normal|italic)\.woff2", w.name)
+                if m:
+                    (dst / w.name).write_bytes(w.read_bytes())
+                    files[f"{m.group(1)}-{m.group(2)}"] = f"fonts/{kebab(fam)}/{w.name}"
+        if not files:
+            print(f"FONT_WARN no local files for {fam}; it will fall back to a system sans")
+        human = re.sub(r"(?<!^)(?=[A-Z])", " ", fam).replace("Jet Brains", "JetBrains").replace("I B M", "IBM")
+        (shim / f"{fam}.ts").write_text(SHIM.replace("__FAMILY__", human).replace("__FILES__", json.dumps(files, indent=1)))
+    print(f"FONTS {len(fams)}: {' '.join(sorted(fams))}")
+
+
+SHIM = '''// Generated by tools/remocn_add.py: local stand-in for @remotion/google-fonts (no internet at render time).
+import { loadFont as loadLocal } from "@remotion/fonts";
+import { staticFile } from "remotion";
+
+const FAMILY = "__FAMILY__";
+const FILES: Record<string, string> = __FILES__;
+const cache: Record<string, Promise<void>> = {};
+
+function pick(weight: string, style: string): string | undefined {
+  if (FILES[`${weight}-${style}`]) return `${weight}-${style}`;
+  if (FILES[`${weight}-normal`]) return `${weight}-normal`;
+  const ws = Object.keys(FILES).filter((k) => k.endsWith(`-${style}`) || k.endsWith("-normal"))
+    .sort((a, b) => Math.abs(+a.split("-")[0] - +weight) - Math.abs(+b.split("-")[0] - +weight));
+  return ws[0];
+}
+
+export const loadFont = (style: string = "normal", options?: { weights?: string[]; subsets?: string[] }) => {
+  const weights = options?.weights?.length ? options.weights : ["400", "500", "600", "700", "800"];
+  const ps = weights.map((w) => {
+    const key = pick(w, style);
+    if (!key) return Promise.resolve();
+    const id = `${w}-${style}`;
+    cache[id] ??= loadLocal({ family: FAMILY, url: staticFile(FILES[key]), weight: w, style }).catch(() => undefined);
+    return cache[id];
+  });
+  return { fontFamily: FAMILY, fonts: {}, unicodeRanges: {}, waitUntilDone: () => Promise.all(ps).then(() => undefined) };
+};
+export const loadVariableFont = (style: string = "normal", options?: any) => loadFont(style, options);
+export const getInfo = () => ({ fontFamily: FAMILY, importName: FAMILY, version: "local", url: "", unicodeRanges: {}, fonts: {} });
+export const fontFamily = FAMILY;
+'''
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--repo", required=True, help="path to a clone of github.com/Remocn/remocn")
+    ap.add_argument("--fonts-only", action="store_true")
+    ap.add_argument("names", nargs="*")
+    a = ap.parse_args()
+    repo = pathlib.Path(a.repo).resolve()
+    if not a.fonts_only:
+        install(repo, a.names)
+    fonts()
+
+
+if __name__ == "__main__":
+    main()
